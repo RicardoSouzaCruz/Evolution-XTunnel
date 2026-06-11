@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --color-cyber-bg: #07040e;
+  --color-cyber-surface: #100a22;
+  --color-cyber-border: #2c1a4d;
+  --color-cyber-text: #f8fafc;
+}
+
+[data-theme="light"] {
+  --color-cyber-bg: #f3f4f6;
+  --color-cyber-surface: #ffffff;
+  --color-cyber-border: #e5e7eb;
+  --color-cyber-text: #1f2937;
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Custom Cyberpunk Neon Theme Colors mapped to dynamic CSS variables */
+  --color-cyber-bg: var(--color-cyber-bg);
+  --color-cyber-surface: var(--color-cyber-surface);
+  --color-cyber-border: var(--color-cyber-border);
+  --color-cyber-card-glow: rgba(168, 85, 247, 0.15);
+  
+  --color-neon-purple: #b026ff;
+  --color-neon-purple-hover: #9600f5;
+  --color-neon-green: #39ff14;
+  --color-neon-green-hover: #1eff05;
+  --color-neon-yellow: #fffb00;
+  --color-neon-yellow-hover: #e6e200;
+}
+
+/* Base custom styles and scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #07040e;
+}
+::-webkit-scrollbar-thumb {
+  background: #2c1a4d;
+  border-radius: 4px;
+  border: 1px solid #39ff14;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b026ff;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-cyber-bg);
+  color: var(--color-cyber-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Cyberpunk visuals - conditional rendering/strength based on active user template mode */
+[data-theme="light"] .cyber-grid {
+  background-image: 
+    linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+}
+
+/* Cyberpunk visuals */
+.cyber-grid {
+  background-image: 
+    linear-gradient(rgba(176, 38, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(176, 38, 255, 0.04) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.glow-purple {
+  box-shadow: 0 0 15px rgba(176, 38, 255, 0.35);
+}
+
+.glow-green {
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.35);
+}
+
+.glow-yellow {
+  box-shadow: 0 0 15px rgba(255, 251, 0, 0.35);
+}
+
+.text-shadow-purple {
+  text-shadow: 0 0 10px rgba(176, 38, 255, 0.6);
+}
+
+.text-shadow-green {
+  text-shadow: 0 0 10px rgba(57, 255, 20, 0.6);
+}
+
+.text-shadow-yellow {
+  text-shadow: 0 0 10px rgba(255, 251, 0, 0.6);
+}
+
+.neon-border-green {
+  border: 1px solid rgba(57, 255, 20, 0.4);
+  box-shadow: inset 0 0 8px rgba(57, 255, 20, 0.1), 0 0 8px rgba(57, 255, 20, 0.1);
+}
+
+.neon-border-purple {
+  border: 1px solid rgba(176, 38, 255, 0.4);
+  box-shadow: inset 0 0 8px rgba(176, 38, 255, 0.1), 0 0 8px rgba(176, 38, 255, 0.1);
+}
+
+.neon-border-yellow {
+  border: 1px solid rgba(255, 251, 0, 0.4);
+  box-shadow: inset 0 0 8px rgba(255, 251, 0, 0.1), 0 0 8px rgba(255, 251, 0, 0.1);
+}
+

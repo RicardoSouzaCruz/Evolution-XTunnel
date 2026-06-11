@@ -1,0 +1,8 @@
+{
+  "name": "Evolution XTunnel",
+  "description": "Painel de controle e gerenciamento de revendas de conexões seguras, túneis SSH, V2Ray e gerador de arquivos de configuração.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
