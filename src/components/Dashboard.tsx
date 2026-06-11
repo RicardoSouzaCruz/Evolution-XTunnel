@@ -73,7 +73,7 @@ export default function Dashboard({
   const [apkPackage, setApkPackage] = useState('com.xtunnel.lite');
   const [apkVersionName, setApkVersionName] = useState('5.5.0');
   const [apkVersionCode, setApkVersionCode] = useState('102');
-  const [apkLogoUrl, setApkLogoUrl] = useState('https://exemplo.com/icon.png');
+  const [apkLogoUrl, setApkLogoUrl] = useState('https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=100&h=100&fit=crop');
   const [apkProtocol, setApkProtocol] = useState<string>('SSH Direct');
   const [apkOfflineTema, setApkOfflineTema] = useState(true);
   const [apkOfflineTextos, setApkOfflineTextos] = useState(true);
@@ -200,6 +200,66 @@ export default function Dashboard({
       setCopiedStates(prev => ({ ...prev, [key]: false }));
     }, 1800);
     pushLog(`Copiado para a área de transferência: [${key}]`, 'info');
+  };
+
+  const handleDownloadConfig = (lnk: any) => {
+    const configData = {
+      appName: apkName,
+      packageName: lnk.packageId || apkPackage,
+      version: lnk.version || apkVersionName,
+      versionCode: apkVersionCode,
+      protocol: apkProtocol,
+      logoUrl: apkLogoUrl,
+      offlineModules: {
+        temaOffline: apkOfflineTema,
+        textosOffline: apkOfflineTextos,
+        cdnsOffline: apkOfflineCDNs,
+        servidoresPreload: apkOfflineConfig
+      },
+      compiledAt: lnk.date,
+      downloadUrlFake: lnk.url,
+      info: "Este arquivo contem as configuracoes customizadas do seu aplicativo XTunnel. Como este e um painel de demonstracao interativa em React (Mockup), a geracao do binario .apk nativo requer um servidor Gradle dedicado. Utilize estas configuracoes JSON geradas para alimentar o seu script de compilador de aplicacao VPN."
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(configData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `xtunnel-config-${lnk.packageId || 'custom'}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    pushLog(`Arquivo de configurações baixado com sucesso! [xtunnel-config-${lnk.packageId || 'custom'}.json]`, 'success');
+  };
+
+  const handleDownloadMockApk = (lnk: any) => {
+    const apkDummyContent = {
+      manifest: {
+        applicationId: lnk.packageId || apkPackage,
+        versionName: lnk.version || apkVersionName,
+        versionCode: apkVersionCode,
+        label: apkName,
+        logo: apkLogoUrl
+      },
+      connection: {
+        defaultProtocol: apkProtocol,
+        offlineTheme: apkOfflineTema,
+        offlineCDNs: apkOfflineCDNs,
+        offlineTexts: apkOfflineTextos,
+        preloadedServers: apkOfflineConfig
+      },
+      environment: "XTUNNEL_SIMULATED_ENVIRONMENT",
+      note: "Este arquivo e o simulador customizado do APK para a versao de testes em navegadores. Para compilacao real nativa e instalacao no Android, configure o seu pipeline de compilação integrada do Gradle no painel VPS principal."
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(apkDummyContent, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    const safeFilename = apkName.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+    downloadAnchor.setAttribute("download", `XTunnel-${safeFilename}-${lnk.version || apkVersionName}.apk`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    pushLog(`Simulador do APK baixado com êxito! XTunnel-${safeFilename}-${lnk.version || apkVersionName}.apk`, 'success');
   };
 
   // Generate 1-Hour Free Test account
@@ -2259,25 +2319,45 @@ export default function Dashboard({
                       ) : (
                         <div className="space-y-2.5 max-h-[160px] overflow-y-auto">
                           {apkLinks.map(lnk => (
-                            <div key={lnk.id} className={`p-2.5 sm:p-3 rounded-xl border flex items-center justify-between text-xs font-mono transition-colors ${
+                            <div key={lnk.id} className={`p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono transition-colors ${
                               theme === 'light' ? 'bg-slate-50 border-slate-200' : 'bg-cyber-bg/70 border-cyber-border'
                             }`}>
-                              <div className="space-y-1.5 max-w-[70%]">
+                              <div className="space-y-1.5 max-w-full sm:max-w-[45%]">
                                 <p className="font-bold truncate text-slate-405 leading-none uppercase">{lnk.name} ({lnk.version})</p>
                                 <p className="text-[10px] text-slate-400 truncate tracking-wide">{lnk.packageId}</p>
                               </div>
-                              <div className="flex items-center gap-1.5 shrink-0">
+                              <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadMockApk(lnk)}
+                                  className="p-1.5 px-2 rounded-lg font-black text-[10px] uppercase flex items-center gap-1 cursor-pointer transition-all bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm"
+                                  style={{ contentVisibility: 'auto' }}
+                                  title="Baixar arquivo de simulação compilado com suas customizações"
+                                >
+                                  📥 APK
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadConfig(lnk)}
+                                  className={`p-1.5 px-2 rounded-lg font-bold text-[10px] uppercase flex items-center gap-1 cursor-pointer transition-all ${
+                                    theme === 'light'
+                                      ? 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                                      : 'bg-indigo-950/40 border border-indigo-500/20 hover:bg-indigo-550/20 text-indigo-300'
+                                  }`}
+                                  title="Exportar arquivo de parâmetros JSON"
+                                >
+                                  ⚙️ Config
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => triggerCopy(lnk.id, lnk.url)}
-                                  className={`p-1.5 px-2.5 rounded-lg font-black text-[10px] uppercase flex items-center gap-1 cursor-pointer transition-all ${
+                                  className={`p-1.5 px-2 rounded-lg font-bold text-[10px] uppercase flex items-center gap-1 cursor-pointer transition-all ${
                                     theme === 'light'
                                       ? 'bg-slate-850 hover:bg-slate-900 text-white'
                                       : 'bg-neon-yellow hover:bg-amber-400 text-slate-950 glow-yellow'
                                   }`}
                                 >
-                                  {copiedStates[lnk.id] ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                                  {copiedStates[lnk.id] ? 'Copiado!' : 'Copiar URL download'}
+                                  {copiedStates[lnk.id] ? 'Copiado' : 'Link'}
                                 </button>
                               </div>
                             </div>
@@ -2402,7 +2482,7 @@ export default function Dashboard({
                           <button
                             type="button"
                             onClick={() => {
-                              setApkLogoUrl('https://exemplo.com/default.png');
+                              setApkLogoUrl('https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=100&h=100&fit=crop');
                               pushLog("Logotipo do APK reconfigurado para a imagem padrão.", "info");
                             }}
                             className={`p-2 border rounded-xl hover:text-red-500 cursor-pointer ${
@@ -2423,6 +2503,39 @@ export default function Dashboard({
                             }`}
                           >
                             Upload
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          <span className="text-[9px] text-slate-400 self-center font-mono uppercase">Sugestões de Logo:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setApkLogoUrl('https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=100&h=100&fit=crop');
+                              pushLog("Logotipo do APK alterado para Escudo Neon.", "info");
+                            }}
+                            className="text-[9px] bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase font-semibold"
+                          >
+                            🔒 Escudo Neon
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setApkLogoUrl('https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop');
+                              pushLog("Logotipo do APK alterado para Malha Tech.", "info");
+                            }}
+                            className="text-[9px] bg-purple-500/10 hover:bg-purple-500/20 text-purple-405 border border-purple-500/20 px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase font-semibold"
+                          >
+                            🌌 Malha Tech
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setApkLogoUrl('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&h=100&fit=crop');
+                              pushLog("Logotipo do APK alterado para Ouro Glow.", "info");
+                            }}
+                            className="text-[9px] bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase font-semibold"
+                          >
+                            🔱 Ouro Glow
                           </button>
                         </div>
                       </div>
@@ -2575,9 +2688,21 @@ export default function Dashboard({
                       {/* Phone inner title & logo */}
                       <div className="p-4 bg-gradient-to-b from-[#100a22] to-[#07040e] flex items-center justify-between border-b border-cyber-border/40 min-h-[50px] shrink-0">
                         <div className="flex items-center gap-1.5">
-                          <div className="bg-neon-purple/10 border border-neon-purple text-neon-yellow font-display font-black text-[9px] h-6 w-7 rounded-md flex items-center justify-center tracking-tighter">
-                            EV
-                          </div>
+                          {apkLogoUrl ? (
+                            <img
+                              src={apkLogoUrl}
+                              alt="Logo"
+                              className="w-6 h-6 rounded-md object-cover border border-[#b026ff]/30"
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=100&h=100&fit=crop';
+                              }}
+                            />
+                          ) : (
+                            <div className="bg-neon-purple/10 border border-neon-purple text-neon-yellow font-display font-black text-[9px] h-6 w-7 rounded-md flex items-center justify-center tracking-tighter">
+                              EV
+                            </div>
+                          )}
                           <div>
                             <span className="text-[7px] font-bold text-shadow-green tracking-[0.15em] text-neon-green block -mb-0.5 font-mono">EVOLUTION</span>
                             <span className="text-[12px] font-black text-white tracking-tight leading-none block">XTUNNEL</span>
