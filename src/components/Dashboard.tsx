@@ -10,7 +10,8 @@ import {
   Server, Users, Radio, Copy, Plus, Trash2, Shield, Search, Code, Coins, 
   Clock, LogOut, Check, Flame, ShieldAlert, Globe, Activity, Wifi, Cpu, 
   FileText, RefreshCw, AlertTriangle, Key, Edit, Calendar, UserCheck,
-  Sun, Moon, Languages, Smartphone, Sparkles, Download, Heart, ArrowUp, RefreshCcw, Zap
+  Sun, Moon, Languages, Smartphone, Sparkles, Download, Heart, ArrowUp, RefreshCcw, Zap,
+  Home, Settings, Monitor, Bell, History, CreditCard
 } from 'lucide-react';
 import { User, SshServer, SshAccount, ConnectionPayload, LogLine } from '../types';
 
@@ -64,8 +65,10 @@ export default function Dashboard({
   onInstallPWA
 }: DashboardProps) {
   
-  const [activeTab, setActiveTab] = useState<'contas' | 'servidores' | 'payloads' | 'resellers' | 'apk' | 'tutoriais'>('contas');
+  const [activeTab, setActiveTab] = useState<'home' | 'contas' | 'servidores' | 'payloads' | 'resellers' | 'apk' | 'tutoriais' | 'renovar' | 'sessoes'>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [configsMenuOpen, setConfigsMenuOpen] = useState(true);
+  const [appMenuOpen, setAppMenuOpen] = useState(true);
   
   // APK Compiling Custom Parameters States (matching screenshots)
   const [apkBase, setApkBase] = useState('XTUNNEL Lite');
@@ -618,26 +621,20 @@ export default function Dashboard({
             >
               {/* Drawer App Brand name header */}
               <div className={`p-4.5 flex items-center justify-between border-b ${
-                theme === 'light' ? 'border-slate-100' : 'border-cyber-border/70'
+                theme === 'light' ? 'border-zinc-100' : 'border-cyber-border/70'
               }`}>
                 <div className="flex items-center gap-2">
-                  <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center font-display font-extrabold text-[11px] tracking-wider select-none ${
-                    theme === 'light'
-                      ? 'bg-slate-100 border border-slate-200 text-slate-800'
-                      : 'bg-[#9822ff]/15 border border-[#9822ff]/50 text-neon-yellow shadow-md'
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center font-display font-bold text-sm ${
+                    theme === 'light' ? 'bg-slate-905 text-white' : 'bg-[#9822ff] text-white'
                   }`}>
-                    EV
+                    DT
                   </div>
                   <div>
-                    <span className={`text-[9px] font-bold tracking-[0.2em] font-mono leading-none block ${
-                      theme === 'light' ? 'text-slate-500' : 'text-neon-green'
-                    }`}>
-                      EVOLUTION
-                    </span>
-                    <span className={`font-display font-black text-sm block leading-none -mt-0.5 ${
-                      theme === 'light' ? 'text-slate-900' : 'text-white'
-                    }`}>
-                      XTUNNEL
+                    <h3 className={`font-display font-black text-sm leading-none m-0 ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}>
+                      DTunnel
+                    </h3>
+                    <span className="text-[9px] font-bold text-slate-400 block mt-0.5 uppercase tracking-wider">
+                      Control Center
                     </span>
                   </div>
                 </div>
@@ -692,181 +689,345 @@ export default function Dashboard({
               </div>
 
               {/* Drawer core navigation tab configurations */}
-              <div className="p-4 flex-grow overflow-y-auto space-y-5">
-                <div>
-                  <p className="text-[9px] uppercase tracking-wider text-slate-400 font-mono font-bold mb-2 ml-1">Configurações Ativas</p>
-                  <div className="space-y-1">
-                    
-                    {/* Contas tab selector */}
+              <div className="p-4 flex-grow overflow-y-auto space-y-3">
+                <div className="space-y-1">
+                  
+                  {/* HOME TAB SELECTOR */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('home');
+                      setIsSidebarOpen(false);
+                      pushLog("Home DTunnel Control Center carregada.", "info");
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
+                      activeTab === 'home'
+                        ? theme === 'light'
+                          ? 'bg-slate-850 text-white shadow-sm'
+                          : 'bg-gradient-to-r from-[#b026ff] to-[#9810ff] text-white shadow-lg shadow-indigo-650/10'
+                        : theme === 'light'
+                          ? 'text-slate-600 hover:bg-slate-50'
+                          : 'text-slate-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <Home className="w-4 h-4 text-neon-green" />
+                    Home Principal
+                  </button>
+
+                  {/* CONFIGURATIONS ACCORDION GROUP */}
+                  <div className="space-y-0.5">
                     <button
                       type="button"
-                      onClick={() => {
-                        setActiveTab('contas');
-                        setIsSidebarOpen(false);
-                        pushLog("Navegando para Contas SSH / VPN", "info");
-                      }}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
-                        activeTab === 'contas'
-                          ? theme === 'light'
-                            ? 'bg-slate-800 text-white shadow-sm'
-                            : 'bg-gradient-to-r from-[#b026ff] to-[#9810ff] text-white shadow-lg shadow-indigo-650/10'
-                          : theme === 'light'
-                            ? 'text-slate-600 hover:bg-slate-50'
-                            : 'text-slate-400 hover:bg-white/5'
+                      onClick={() => setConfigsMenuOpen(!configsMenuOpen)}
+                      className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
+                        theme === 'light' ? 'text-slate-500 hover:bg-slate-50' : 'text-slate-400 hover:bg-white/5'
                       }`}
                     >
                       <span className="flex items-center gap-2.5">
-                        <Key className="w-4 h-4 text-neon-green" />
-                        Acessos SSH / VPN
+                        <Settings className="w-4 h-4 text-neon-purple" />
+                        Configurações
                       </span>
-                      <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                        activeTab === 'contas' ? 'bg-white/20 text-white' : 'bg-slate-500/10 text-slate-400'
-                      }`}>
-                        {filteredAccounts.length}
+                      <span className="text-[9px] font-sans text-slate-400">
+                        {configsMenuOpen ? '▲' : '▼'}
                       </span>
                     </button>
 
-                    {/* Servidores tab selector */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab('servidores');
-                        setIsSidebarOpen(false);
-                        pushLog("Navegando para Servidores VPN", "info");
-                      }}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
-                        activeTab === 'servidores'
-                          ? theme === 'light'
-                            ? 'bg-slate-800 text-white shadow-sm'
-                            : 'bg-neon-green text-slate-950 shadow-lg glow-green'
-                          : theme === 'light'
-                            ? 'text-slate-600 hover:bg-slate-50'
-                            : 'text-slate-400 hover:bg-white/5'
-                      }`}
-                    >
-                      <span className="flex items-center gap-2.5">
-                        <Server className="w-4 h-4 text-neon-purple" />
-                        Servidores Ativos
-                      </span>
-                      <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                        activeTab === 'servidores' ? 'bg-white/20 text-slate-900' : 'bg-slate-500/10 text-slate-400'
-                      }`}>
-                        {allServers.length}
-                      </span>
-                    </button>
+                    {configsMenuOpen && (
+                      <div className="space-y-0.5 pl-4 border-l border-cyber-border/30 ml-5 mt-1 transition-all">
+                        {/* Sub-item: Home (Servidores) */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('servidores');
+                            setIsSidebarOpen(false);
+                            pushLog("Gerenciando Servidores VPN", "info");
+                          }}
+                          className={`w-full flex items-center justify-between py-1.5 px-2 rounded-lg text-left text-[11px] font-bold transition-all cursor-pointer ${
+                            activeTab === 'servidores'
+                              ? theme === 'light'
+                                ? 'bg-slate-205 text-slate-800'
+                                : 'bg-[#291757]/60 text-[#b026ff]'
+                              : theme === 'light'
+                                ? 'text-slate-550 hover:bg-slate-50'
+                                : 'text-slate-400 hover:bg-white/5'
+                          }`}
+                        >
+                          <span>Home (Servidores)</span>
+                          <span className="text-[9px] font-mono opacity-80">{allServers.length}</span>
+                        </button>
 
-                    {/* Configurações tab selector */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab('payloads');
-                        setIsSidebarOpen(false);
-                        pushLog("Navegando para Configurações SNI e Payloads", "info");
-                      }}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
-                        activeTab === 'payloads'
-                          ? theme === 'light'
-                            ? 'bg-slate-800 text-white shadow-sm'
-                            : 'bg-neon-yellow text-slate-950 shadow-lg glow-yellow'
-                          : theme === 'light'
-                            ? 'text-slate-600 hover:bg-slate-50'
-                            : 'text-slate-400 hover:bg-white/5'
-                      }`}
-                    >
-                      <span className="flex items-center gap-2.5">
-                        <Code className="w-4 h-4 text-neon-green" />
-                        Payloads & SNI
-                      </span>
-                      <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                        activeTab === 'payloads' ? 'bg-white/20 text-slate-900' : 'bg-slate-500/10 text-slate-400'
-                      }`}>
-                        {allPayloads.length}
-                      </span>
-                    </button>
+                        {/* Sub-item: Categorias (Payloads) */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('payloads');
+                            setIsSidebarOpen(false);
+                            pushLog("Gerenciando Categorias de Payloads", "info");
+                          }}
+                          className={`w-full flex items-center justify-between py-1.5 px-2 rounded-lg text-left text-[11px] font-bold transition-all cursor-pointer ${
+                            activeTab === 'payloads'
+                              ? theme === 'light'
+                                ? 'bg-slate-205 text-slate-800'
+                                : 'bg-[#291757]/60 text-[#b026ff]'
+                              : theme === 'light'
+                                ? 'text-slate-550 hover:bg-slate-50'
+                                : 'text-slate-400 hover:bg-white/5'
+                          }`}
+                        >
+                          <span>Categorias (Tweaks)</span>
+                          <span className="text-[9px] font-mono opacity-80">{allPayloads.length}</span>
+                        </button>
 
-                    {/* Gerar APK tab selector */}
+                        {/* Sub-item: Usuários Associados */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('contas');
+                            setIsSidebarOpen(false);
+                            pushLog("Gerenciando Usuários Associados", "info");
+                          }}
+                          className={`w-full flex items-center justify-between py-1.5 px-2 rounded-lg text-left text-[11px] font-bold transition-all cursor-pointer ${
+                            activeTab === 'contas'
+                              ? theme === 'light'
+                                ? 'bg-slate-205 text-slate-800'
+                                : 'bg-[#291757]/60 text-[#b026ff]'
+                              : theme === 'light'
+                                ? 'text-slate-550 hover:bg-slate-50'
+                                : 'text-slate-400 hover:bg-white/5'
+                          }`}
+                        >
+                          <span>Usuários associados</span>
+                          <span className="text-[9px] font-mono opacity-80">{filteredAccounts.length}</span>
+                        </button>
+
+                        {/* Sub-item: CDN */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            pushLog("CDN ativa: Cloudflare e Fastly operando 100% protegidas.", "success");
+                            alert("📡 Integração CDN Ativa! Suas configurações JSON de VPN usam entrega inteligente DNS Anycast com otimização latar.");
+                          }}
+                          className={`w-full flex items-center justify-between py-1.5 px-2 rounded-lg text-left text-[11px] text-slate-400 hover:bg-white/5 font-bold transition-all cursor-pointer`}
+                        >
+                          <span>CDN DNS Cloud</span>
+                          <span className="text-[8px] bg-emerald-500/10 text-emerald-400 font-mono px-1 rounded">ON</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* APLICATIVO ACCORDION GROUP */}
+                  <div className="space-y-0.5">
                     <button
                       type="button"
-                      onClick={() => {
-                        setActiveTab('apk');
-                        setIsSidebarOpen(false);
-                        pushLog("Navegando para Compilador APK", "info");
-                      }}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
-                        activeTab === 'apk'
-                          ? theme === 'light'
-                            ? 'bg-slate-800 text-white shadow-sm'
-                            : 'bg-indigo-650 text-white shadow-lg'
-                          : theme === 'light'
-                            ? 'text-slate-600 hover:bg-slate-50'
-                            : 'text-slate-400 hover:bg-white/5'
+                      onClick={() => setAppMenuOpen(!appMenuOpen)}
+                      className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
+                        theme === 'light' ? 'text-slate-500 hover:bg-slate-50' : 'text-slate-400 hover:bg-white/5'
                       }`}
                     >
                       <span className="flex items-center gap-2.5">
                         <Smartphone className="w-4 h-4 text-neon-yellow" fill="currentColor" />
-                        Compilar Aplicativo
+                        Aplicativo
                       </span>
-                      {apkLinks.length > 0 && (
-                        <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                          activeTab === 'apk' ? 'bg-white/20 text-white' : 'bg-slate-500/10 text-slate-400'
-                        }`}>
-                          {apkLinks.length}
-                        </span>
-                      )}
-                    </button>
-
-                    {/* Guia Sem VPS / Tutoriais tab selector */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab('tutoriais');
-                        setIsSidebarOpen(false);
-                        pushLog("Navegando para o manual Técnico - Alternativas Sem VPS", "info");
-                      }}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
-                        activeTab === 'tutoriais'
-                          ? theme === 'light'
-                            ? 'bg-slate-800 text-white shadow-sm'
-                            : 'bg-emerald-650 text-white shadow-lg glow-green'
-                          : theme === 'light'
-                            ? 'text-slate-600 hover:bg-slate-50'
-                            : 'text-slate-400 hover:bg-white/5'
-                      }`}
-                    >
-                      <span className="flex items-center gap-2.5">
-                        <Sparkles className="w-4 h-4 text-neon-yellow animate-pulse" />
-                        Alternativas Sem VPS
-                      </span>
-                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-neon-green/10 text-neon-green uppercase border border-neon-green/20">
-                        Novo
+                      <span className="text-[9px] font-sans text-slate-400">
+                        {appMenuOpen ? '▲' : '▼'}
                       </span>
                     </button>
 
-                    {/* Revendedores tab selector */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab('resellers');
-                        setIsSidebarOpen(false);
-                        pushLog("Navegando para configurações de Operador", "info");
-                      }}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
-                        activeTab === 'resellers'
-                          ? theme === 'light'
-                            ? 'bg-slate-800 text-white shadow-sm'
-                            : 'bg-cyber-surface border border-cyber-border text-slate-105 shadow-md'
-                          : theme === 'light'
-                            ? 'text-slate-600 hover:bg-slate-50'
-                            : 'text-slate-400 hover:bg-white/5'
-                      }`}
-                    >
-                      <span className="flex items-center gap-2.5">
-                        <Users className="w-4 h-4 text-neon-purple" />
-                        {currentUser.isAdmin ? 'Operador Revendas' : 'Minhas Credenciais'}
-                      </span>
-                    </button>
+                    {appMenuOpen && (
+                      <div className="space-y-0.5 pl-4 border-l border-cyber-border/30 ml-5 mt-1 transition-all">
+                        {/* Sub-item: Home do App */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('apk');
+                            setIsSidebarOpen(false);
+                            pushLog("Navegando para Home do Aplicativo", "info");
+                          }}
+                          className={`w-full flex items-center justify-between py-1.5 px-2 rounded-lg text-left text-[11px] font-bold transition-all cursor-pointer ${
+                            activeTab === 'apk'
+                              ? theme === 'light'
+                                ? 'bg-slate-205 text-slate-800'
+                                : 'bg-[#291757]/60 text-[#b026ff]'
+                              : theme === 'light'
+                                ? 'text-slate-550 hover:bg-slate-50'
+                                : 'text-slate-400 hover:bg-white/5'
+                          }`}
+                        >
+                          <span>Home (App Layout)</span>
+                        </button>
 
+                        {/* Sub-item: Gerar APK */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('apk');
+                            setIsSidebarOpen(false);
+                            pushLog("Gerador de compilados APK ativado", "info");
+                          }}
+                          className={`w-full flex items-center justify-between py-1.5 px-2 rounded-lg text-left text-[11px] font-bold transition-all cursor-pointer ${
+                            activeTab === 'apk'
+                              ? theme === 'light'
+                                ? 'bg-slate-205 text-slate-800'
+                                : 'bg-[#291757]/60 text-[#b026ff]'
+                              : theme === 'light'
+                                ? 'text-slate-550 hover:bg-slate-50'
+                                : 'text-slate-400 hover:bg-white/5'
+                          }`}
+                        >
+                          <span>Gerar APK</span>
+                          <span className="text-[10px] font-black shrink-0 px-1.5 py-0.2 rounded-md font-mono bg-indigo-500/10 text-indigo-400">BUILD</span>
+                        </button>
+
+                        {/* Sub-item: Temas da comunidade */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            pushLog("Temas de Layout da Comunidade carregados com sucesso.", "success");
+                            alert("🎨 Temas DTunnel: Disponibilizamos as bases 'DTunnel Pro v5' com layout de botões em Stadium e anel de brilho neon. No simulador ao vivo na direita, você pode ver estas modificações atualizadas em tempo real!");
+                          }}
+                          className={`w-full flex items-center justify-between py-1.5 px-2 rounded-lg text-left text-[11px] text-slate-400 hover:bg-white/5 font-bold transition-all cursor-pointer`}
+                        >
+                          <span>Temas da comunidade</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
+
+                  {/* TEXTOS (Alternative sem VPS manual) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('tutoriais');
+                      setIsSidebarOpen(false);
+                      pushLog("Carregando seções de Textos e Tutoriais", "info");
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
+                      activeTab === 'tutoriais'
+                        ? theme === 'light'
+                          ? 'bg-slate-850 text-white shadow-sm'
+                          : 'bg-gradient-to-r from-[#b026ff] to-[#9810ff] text-white shadow-lg'
+                        : theme === 'light'
+                          ? 'text-slate-600 hover:bg-slate-50'
+                          : 'text-slate-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <FileText className="w-4 h-4 text-indigo-400" />
+                    Textos e Tutoriais
+                  </button>
+
+                  {/* RENOVAR (Shown at 05:55 in video) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('renovar');
+                      setIsSidebarOpen(false);
+                      pushLog("Abas de renovação carregada.", "info");
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
+                      activeTab === 'renovar'
+                        ? theme === 'light'
+                          ? 'bg-slate-850 text-white shadow-sm'
+                          : 'bg-gradient-to-r from-[#b026ff] to-[#9810ff] text-white shadow-lg'
+                        : theme === 'light'
+                          ? 'text-slate-600 hover:bg-slate-50'
+                          : 'text-slate-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <CreditCard className="w-4 h-4 text-emerald-400" />
+                    Renovar Conta
+                  </button>
+
+                  {/* TRANSACOES (linked to reselling profile) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('resellers');
+                      setIsSidebarOpen(false);
+                      pushLog("Carregando histórico de Transações.", "info");
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
+                      theme === 'light' ? 'text-slate-600 hover:bg-slate-50' : 'text-slate-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <History className="w-4 h-4 text-purple-400" />
+                    Transações
+                  </button>
+
+                  {/* NOTIFICACOES */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      pushLog("Central de Notificações operacional. Nenhuma mensagem pendente.", "info");
+                      alert("🔔 Notificações Centralizadas! Seu servidor está notificando todos os aplicativos de VPN em segundo plano.");
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
+                      theme === 'light' ? 'text-slate-600 hover:bg-slate-50' : 'text-slate-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <Bell className="w-4 h-4 text-amber-500 animate-pulse" />
+                    Notificações
+                  </button>
+
+                  {/* DISPOSITIVOS */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      pushLog("Acessando registro de dispositivos móveis.", "info");
+                      alert("📱 Dispositivos Conectados: 1 aparelho Android simulado está pareado ao painel neste exato momento!");
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
+                      theme === 'light' ? 'text-slate-600 hover:bg-slate-50' : 'text-slate-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <Monitor className="w-4 h-4 text-[#1eff05]" />
+                    Dispositivos
+                  </button>
+
+                  {/* SESSOES (An unbelievably cool mirror of the video at 06:17!) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('sessoes');
+                      setIsSidebarOpen(false);
+                      pushLog("Visualizando Registro de Sessões Ativas.", "info");
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
+                      activeTab === 'sessoes'
+                        ? theme === 'light'
+                          ? 'bg-slate-850 text-white shadow-sm'
+                          : 'bg-gradient-to-r from-[#b026ff] to-[#9810ff] text-white shadow-lg'
+                        : theme === 'light'
+                          ? 'text-slate-600 hover:bg-slate-50'
+                          : 'text-slate-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <Activity className="w-4 h-4 text-red-500" />
+                    Sessões
+                  </button>
+
+                  {/* PERFIL (Operator credentials) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('resellers');
+                      setIsSidebarOpen(false);
+                      pushLog("Navegando para o perfil do Operador.", "info");
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-left text-xs font-bold uppercase transition-all cursor-pointer ${
+                      activeTab === 'resellers'
+                        ? theme === 'light'
+                          ? 'bg-slate-850 text-white shadow-sm'
+                          : 'bg-[#1a0e3a] text-[#b026ff]'
+                        : theme === 'light'
+                          ? 'text-slate-600 hover:bg-slate-50'
+                          : 'text-slate-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <UserCheck className="w-4 h-4 text-[#9822ff]" />
+                    Perfil Operador
+                  </button>
+
                 </div>
 
                 {/* Quick Layout Themes Preferences inside Sidebar */}
@@ -1299,6 +1460,460 @@ export default function Dashboard({
         <div id="tab-viewport" className="min-h-[400px]">
           <AnimatePresence mode="wait">
             
+            {/* TAB: HOME PRINCIPAL (Espelhando o video em 00:00 - 00:23) */}
+            {activeTab === 'home' && (
+              <motion.div
+                key="home-view"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="space-y-6"
+              >
+                {/* Expira em breve Alerta Amarelo */}
+                <div className="bg-amber-500/10 border border-amber-300 text-amber-955 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 select-none">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-black font-mono bg-amber-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                        ⚠️ Expira em Breve
+                      </span>
+                    </div>
+                    <h2 className={`text-base font-black font-display ${theme === 'light' ? 'text-zinc-900' : 'text-amber-200'}`}>
+                      Olá, {currentUser.name || 'Larissa'}
+                    </h2>
+                    <p className={`text-xs ${theme === 'light' ? 'text-zinc-600' : 'text-zinc-300'} mt-1`}>
+                      Antecipe a renovação para evitar bloqueios operacionais nos seus túneis e aplicativos em produção.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('renovar')}
+                    className="shrink-0 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase px-4 py-2 rounded-xl transition-all cursor-pointer shadow-md"
+                  >
+                    Renovar Agora
+                  </button>
+                </div>
+
+                {/* Grid principal de Conta, Expiracao, Configs */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* CONTA CARD */}
+                  <div className={`p-5 rounded-3xl border shadow-sm flex flex-col justify-between ${
+                    theme === 'light' ? 'bg-white border-zinc-200 text-zinc-900' : 'bg-[#100a22]/80 border-cyber-border text-white'
+                  }`}>
+                    <div>
+                      <span className="text-[10px] font-mono tracking-widest text-slate-400 font-bold uppercase block">CONTA</span>
+                      <p className="text-xl font-bold font-display mt-1">{currentUser.name || 'Larissa'}</p>
+                    </div>
+                    <div className="border-t border-zinc-100/50 mt-4 pt-2 text-[11px] text-slate-405 font-mono">
+                      Tipo: <span className="text-emerald-500 font-bold uppercase">{currentUser.isAdmin ? 'Administrador' : 'Usuário / Revenda'}</span>
+                    </div>
+                  </div>
+
+                  {/* EXPIRACAO CARD */}
+                  <div className={`p-5 rounded-3xl border shadow-sm flex flex-col justify-between ${
+                    theme === 'light' ? 'bg-white border-zinc-200 text-zinc-900' : 'bg-[#100a22]/80 border-cyber-border text-white'
+                  }`}>
+                    <div>
+                      <span className="text-[10px] font-mono tracking-widest text-slate-400 font-bold uppercase block">EXPIRAÇÃO</span>
+                      <p className="text-xl font-bold font-display text-red-500 mt-1">4 dias restantes</p>
+                    </div>
+                    <div className="border-t border-zinc-100/50 mt-4 pt-2 text-[11px] text-slate-405 font-mono">
+                      Licença válida até: <span className="font-bold">15/06/2026</span>
+                    </div>
+                  </div>
+
+                  {/* CONFIGURACOES CARD */}
+                  <div className={`p-5 rounded-3xl border shadow-sm flex flex-col justify-between ${
+                    theme === 'light' ? 'bg-white border-zinc-200 text-zinc-900' : 'bg-[#100a22]/80 border-cyber-border text-white'
+                  }`}>
+                    <div>
+                      <span className="text-[10px] font-mono tracking-widest text-slate-400 font-bold uppercase block">CONFIGURAÇÕES</span>
+                      <p className="text-xl font-bold font-display text-indigo-505 mt-1">{allPayloads.length} Ativas</p>
+                    </div>
+                    <div className="border-t border-zinc-100/50 mt-4 pt-2 text-[11px] text-slate-405 font-mono">
+                      Servidores operacionais: <span className="font-bold text-emerald-500">{allServers.length}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Historico de datas detalhadas */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                  <div className={`p-4 rounded-2xl border flex items-center gap-3 ${
+                    theme === 'light' ? 'bg-white border-zinc-200' : 'bg-[#0f0a21]/50 border-cyber-border'
+                  }`}>
+                    <div className="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
+                      📅
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-[10px] uppercase font-bold font-mono">Criado em</p>
+                      <p className={`font-bold ${theme === 'light' ? 'text-zinc-800' : 'text-slate-100'}`}>10/06/2026</p>
+                      <span className="text-[9px] text-slate-450 block leading-none">Data inicial da conta</span>
+                    </div>
+                  </div>
+
+                  <div className={`p-4 rounded-2xl border flex items-center gap-3 ${
+                    theme === 'light' ? 'bg-white border-zinc-200' : 'bg-[#0f0a21]/50 border-cyber-border'
+                  }`}>
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                      🔄
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-[10px] uppercase font-bold font-mono">Atualizado em</p>
+                      <p className={`font-bold ${theme === 'light' ? 'text-zinc-800' : 'text-slate-100'}`}>10/06/2026</p>
+                      <span className="text-[9px] text-slate-450 block leading-none">Última alteração registrada</span>
+                    </div>
+                  </div>
+
+                  <div className={`p-4 rounded-2xl border flex items-center gap-3 ${
+                    theme === 'light' ? 'bg-white border-zinc-200' : 'bg-[#0f0a21]/50 border-cyber-border'
+                  }`}>
+                    <div className="w-8 h-8 rounded-full bg-red-500/10 text-red-550 flex items-center justify-center shrink-0">
+                      🎟️
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-[10px] uppercase font-bold font-mono">Expira em</p>
+                      <p className={`font-bold ${theme === 'light' ? 'text-zinc-800' : 'text-slate-100'}`}>15/06/2026</p>
+                      <span className="text-[9px] text-slate-450 block leading-none truncate max-w-[150px]">{currentUser.email || 'larissaalves123@gmail.com'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modulos Principais Section */}
+                <div className="space-y-3.5">
+                  <div>
+                    <h3 className={`text-base font-black font-display uppercase tracking-tight ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>
+                      Módulos Principais
+                    </h3>
+                    <p className="text-xs text-slate-400">Acesso rápido para os módulos mais utilizados do painel de controle do seu aplicativo de VPN.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* MODULO: CONFIGURACOES */}
+                    <div 
+                      onClick={() => setActiveTab('servidores')}
+                      className={`p-5 rounded-2xl border cursor-pointer hover:scale-[1.01] transition-all flex flex-col justify-between ${
+                        theme === 'light' ? 'bg-white border-zinc-200 hover:border-zinc-350' : 'bg-[#100a22] border-cyber-border hover:border-neon-purple/50'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                            <Server className="w-4 h-4" />
+                          </div>
+                          <span className="text-xs font-mono font-bold text-indigo-500 bg-indigo-500/5 px-2 py-0.5 rounded-full">
+                            TOTAL: {allServers.length}
+                          </span>
+                        </div>
+                        <h4 className={`text-sm font-bold font-display mt-3.5 ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>Configurações</h4>
+                        <p className="text-[11.5px] text-slate-400 mt-1 leading-relaxed">Gerencie servidores, ordem, controle de carga de banda e distribuição direta no aplicativo.</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-indigo-500 mt-4">
+                        Acessar módulo <span>→</span>
+                      </div>
+                    </div>
+
+                    {/* MODULO: CATEGORIAS */}
+                    <div 
+                      onClick={() => setActiveTab('payloads')}
+                      className={`p-5 rounded-2xl border cursor-pointer hover:scale-[1.01] transition-all flex flex-col justify-between ${
+                        theme === 'light' ? 'bg-white border-zinc-200 hover:border-zinc-350' : 'bg-[#100a22] border-cyber-border hover:border-neon-purple/50'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                            <Code className="w-4 h-4" />
+                          </div>
+                          <span className="text-xs font-mono font-bold text-emerald-500 bg-emerald-500/5 px-2 py-0.5 rounded-full">
+                            TOTAL: {allPayloads.length}
+                          </span>
+                        </div>
+                        <h4 className={`text-sm font-bold font-display mt-3.5 ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>Categorias (Tweaks)</h4>
+                        <p className="text-[11.5px] text-slate-400 mt-1 leading-relaxed">Organize grupos de conexão por operadora, portas, métodos e mantenha a estrutura do aplicativo limpa.</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-500 mt-4">
+                        Acessar módulo <span>→</span>
+                      </div>
+                    </div>
+
+                    {/* MODULO: DISPOSITIVOS */}
+                    <div 
+                      onClick={() => {
+                        setActiveTab('contas');
+                        pushLog("Buscando lista de conexões registradas.", "info");
+                      }}
+                      className={`p-5 rounded-2xl border cursor-pointer hover:scale-[1.01] transition-all flex flex-col justify-between ${
+                        theme === 'light' ? 'bg-white border-zinc-200 hover:border-zinc-350' : 'bg-[#100a22] border-cyber-border hover:border-neon-purple/50'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                            <Monitor className="w-4 h-4" />
+                          </div>
+                          <span className="text-xs font-mono font-bold text-amber-500 bg-amber-500/5 px-2 py-0.5 rounded-full">
+                            TOTAL: 1
+                          </span>
+                        </div>
+                        <h4 className={`text-sm font-bold font-display mt-3.5 ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>Dispositivos</h4>
+                        <p className="text-[11.5px] text-slate-400 mt-1 leading-relaxed">Acompanhe o volume em tempo real e a atividade de aparelhos sincronizados aos túneis ativos.</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-amber-500 mt-4">
+                        Acessar módulo <span>→</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* TAB: RENOVAR CONTA (Espelhando o video aos 05:55) */}
+            {activeTab === 'renovar' && (
+              <motion.div
+                key="renovar-view"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="space-y-6"
+              >
+                <div>
+                  <h2 className={`text-xl font-black font-display uppercase tracking-tight ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>
+                    Renovar Licença do Painel
+                  </h2>
+                  <p className="text-xs text-slate-400">Escolha o plano ideal para suas revendas, aplique cupons personalizados e faça o pagamento no PIX ou Cartão.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {/* PLANO TRIMESTRAL */}
+                  <div className={`p-5 rounded-2xl border flex flex-col justify-between relative overflow-hidden ${
+                    theme === 'light' ? 'bg-white border-indigo-300' : 'bg-[#150d2c] border-indigo-500/60'
+                  }`}>
+                    <div className="absolute top-3 right-3 bg-emerald-550 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                      Disponível
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-indigo-500">PLANO DE RENOVAÇÃO</p>
+                      <h3 className={`text-lg font-black font-display mt-1 ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>Plano Trimestral</h3>
+                      <p className="text-[10.5px] text-slate-450 mt-1 leading-relaxed">Renovação completa por 03 meses com suporte API e atualizações APK gratuitas inclusive.</p>
+                    </div>
+                    <div className="mt-8 border-t border-zinc-100/40 pt-3">
+                      <span className="text-[10px] text-slate-400 font-mono block">03 MESES</span>
+                      <p className="text-2xl font-black font-mono text-emerald-500 mt-1">R$ 90,00</p>
+                    </div>
+                  </div>
+
+                  {/* PLANO MENSAL */}
+                  <div className={`p-5 rounded-2xl border flex flex-col justify-between relative overflow-hidden ${
+                    theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#0f0a21] border-cyber-border'
+                  }`}>
+                    <div className="absolute top-3 right-3 bg-zinc-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                      Disponível
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-400">PLANO DE RENOVAÇÃO</p>
+                      <h3 className={`text-md font-black font-display mt-0.5 ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>Plano Mensal</h3>
+                      <p className="text-[10.5px] text-slate-450 mt-1 leading-relaxed">Ideal para testar seu painel e infraestrutura de rede por 30 dias operacionais.</p>
+                    </div>
+                    <div className="mt-8 border-t border-zinc-100/40 pt-3">
+                      <span className="text-[10px] text-slate-400 font-mono block">01 MÊS</span>
+                      <p className={`text-xl font-black font-mono mt-0.5 ${theme === 'light' ? 'text-zinc-705' : 'text-slate-100'}`}>R$ 35,00</p>
+                    </div>
+                  </div>
+
+                  {/* PLANO VITALICIO */}
+                  <div className={`p-5 rounded-2xl border flex flex-col justify-between relative overflow-hidden ${
+                    theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#0f0a21] border-cyber-border'
+                  }`}>
+                    <div className="absolute top-3 right-3 bg-amber-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                      Exclusivo
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-amber-500">PLANO DE RENOVAÇÃO</p>
+                      <h3 className={`text-md font-black font-display mt-0.5 ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>Plano Vitalício</h3>
+                      <p className="text-[10.5px] text-slate-450 mt-1 leading-relaxed">Licença sem expiração de sistema dedicada por múltiplos anos de infraestrutura.</p>
+                    </div>
+                    <div className="mt-8 border-t border-zinc-100/40 pt-3">
+                      <span className="text-[10px] text-slate-400 font-mono block">2739 ANOS</span>
+                      <p className="text-xl font-black font-mono text-amber-500 mt-0.5">R$ 250,00</p>
+                    </div>
+                  </div>
+
+                  {/* PLANO ANUAL */}
+                  <div className={`p-5 rounded-2xl border flex flex-col justify-between relative overflow-hidden ${
+                    theme === 'light' ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#0f0a21] border-cyber-border'
+                  }`}>
+                    <div className="absolute top-3 right-3 bg-zinc-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                      Disponível
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-400">PLANO DE RENOVAÇÃO</p>
+                      <h3 className={`text-md font-black font-display mt-0.5 ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>Plano Anual</h3>
+                      <p className="text-[10.5px] text-slate-450 mt-1 leading-relaxed">Licença corporativa de 01 ano inteiro de conexões com alto desconto.</p>
+                    </div>
+                    <div className="mt-8 border-t border-zinc-100/40 pt-3">
+                      <span className="text-[10px] text-slate-400 font-mono block">01 ANO</span>
+                      <p className={`text-xl font-black font-mono mt-0.5 ${theme === 'light' ? 'text-zinc-705' : 'text-slate-100'}`}>R$ 215,00</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cupom e Método de Pagamento do Video */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* METODO DE PAGAMENTO */}
+                  <div className={`p-5 rounded-3xl border ${
+                    theme === 'light' ? 'bg-white border-zinc-200' : 'bg-[#100a22] border-cyber-border'
+                  }`}>
+                    <h3 className={`text-sm font-bold uppercase tracking-tight ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>Forma de pagamento</h3>
+                    <p className="text-[11px] text-slate-400 mt-1">Selecione o método e receba as credenciais de pagamento instantaneamente.</p>
+                    
+                    <div className="grid grid-cols-2 gap-3 mt-4">
+                      <button className="flex items-center justify-center gap-2 border border-emerald-500/30 bg-emerald-500/5 text-emerald-400 p-3.5 rounded-xl font-bold text-xs uppercase cursor-pointer hover:bg-emerald-500/10 transition-colors">
+                        ⚙️ PIX
+                      </button>
+                      <button className="flex items-center justify-center gap-2 border border-zinc-200 bg-transparent p-3.5 rounded-xl font-bold text-xs uppercase text-slate-400 cursor-pointer">
+                        💳 Cartão
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* CUPOM DE DESCONTO */}
+                  <div className={`p-5 rounded-3xl border ${
+                    theme === 'light' ? 'bg-white border-zinc-200' : 'bg-[#100a22] border-cyber-border'
+                  }`}>
+                    <h3 className={`text-sm font-bold uppercase tracking-tight ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>Cupom de desconto</h3>
+                    <p className="text-[11px] text-slate-400 mt-1">Possui algum código promocional? Digite-o abaixo para recalcular.</p>
+                    
+                    <div className="flex gap-2.5 mt-4">
+                      <input 
+                        type="text" 
+                        placeholder="Digite o cupom de desconto" 
+                        className={`flex-grow px-3.5 py-3 rounded-xl border text-xs focus:ring-1 focus:ring-indigo-500 outline-none ${
+                          theme === 'light' ? 'bg-zinc-50 border-zinc-200 text-zinc-800' : 'bg-[#0f0a21] border-cyber-border text-white'
+                        }`}
+                      />
+                      <button className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs px-5 py-3 rounded-xl transition-all cursor-pointer shadow-md uppercase shrink-0">
+                        Aplicar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* BOTÃO FINAL DIRT REVENUE */}
+                <div className="flex justify-center pt-2">
+                  <button 
+                    onClick={() => {
+                      pushLog("Simulando geração de PIX para renovação...", "info");
+                      alert("💸 Renovação DTunnel: PIX Copia & Cola gerado com sucesso! Chave PIX teste fictícia: 8a3b83c7-ef5c-482a-9214-93ff5fcfdb4e. O seu painel será renovado assim que a validação de rede simular o pagamento!");
+                      pushLog("Sucesso! Chave de renovação PIX gerada sob protocolo de seguradora.", "success");
+                    }}
+                    className="w-full max-w-md bg-indigo-550 hover:bg-indigo-600 text-white px-6 py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all cursor-pointer shadow-lg hover:shadow-indigo-500/25 flex items-center justify-center gap-2"
+                  >
+                    🔄 Gerar Cobrança e Renovar Agora
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* TAB: SESSÕES (Espelhando o video de forma ultra fiel aos 06:17!) */}
+            {activeTab === 'sessoes' && (
+              <motion.div
+                key="sessoes-view"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="space-y-6"
+              >
+                <div>
+                  <h2 className={`text-xl font-black font-display uppercase tracking-tight ${theme === 'light' ? 'text-zinc-800' : 'text-white'}`}>
+                    Sessões Ativas
+                  </h2>
+                  <p className="text-xs text-slate-400">Acompanhe quem está conectado neste exato momento no painel de controle do seu aplicativo DTunnel.</p>
+                </div>
+
+                {/* Resumo de sessoes */}
+                <div className="flex gap-3 select-none text-xs font-mono font-bold">
+                  <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-xl">
+                    1 sessões ativas
+                  </span>
+                  <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    1 atual
+                  </span>
+                </div>
+
+                {/* Card de Sessao principal do video em 06:17 */}
+                <div className={`p-6 rounded-3xl border shadow-md space-y-4 ${
+                  theme === 'light' ? 'bg-white border-zinc-200' : 'bg-[#100a22] border-cyber-border'
+                }`}>
+                  <div className="flex items-center justify-between border-b border-zinc-100/30 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">📱</div>
+                      <div>
+                        <h3 className={`text-sm font-bold font-display leading-none ${theme === 'light' ? 'text-zinc-800' : 'text-slate-100'}`}>
+                          Android
+                        </h3>
+                        <span className="text-[10px] text-slate-400 block mt-1">Google Chrome / Celular do Operador</span>
+                      </div>
+                    </div>
+                    <span className="bg-emerald-550 text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full">
+                      Sessão Atual
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                    <div className="space-y-1">
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">ID SESSÃO:</span>
+                      <p className={`p-2.5 rounded-xl font-bold truncate ${theme === 'light' ? 'bg-zinc-50 text-zinc-700 border border-zinc-150' : 'bg-[#0f0a21] text-indigo-300'}`}>
+                        8a89bf127b6a42e79da2bfe1cf6acd33
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">IP ORIGEM:</span>
+                      <p className={`p-2.5 rounded-xl font-bold ${theme === 'light' ? 'bg-zinc-50 text-zinc-700 border border-zinc-150' : 'bg-[#0f0a21] text-indigo-300'}`}>
+                        151.244.242.249
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">NAVEGADOR:</span>
+                      <p className={`p-2.5 rounded-xl font-bold ${theme === 'light' ? 'bg-zinc-50 text-zinc-700 border border-zinc-150' : 'bg-[#0f0a21] text-indigo-300'}`}>
+                        Google Chrome (Android 10; K)
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-slate-400 font-bold block text-[10px] uppercase">LOCALIZAÇÃO DETALHADA:</span>
+                      <p className={`p-2.5 rounded-xl font-bold truncate ${theme === 'light' ? 'bg-zinc-50 text-zinc-700 border border-zinc-150' : 'bg-[#0f0a21] text-indigo-300'}`} title="Rua Péricles, Jardim Gláucia, Belford Roxo, Rio de Janeiro - RJ, Brasil">
+                        Belford Roxo, Rio de Janeiro - RJ, Brasil
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Localizacao e mini-mapa simulado */}
+                  <div className="space-y-1.5 pt-2">
+                    <span className="text-slate-400 font-bold block text-[10px] uppercase font-mono">MAPA DE CONEXÃO:</span>
+                    <div className={`p-3 rounded-2xl border flex flex-col items-center justify-center min-h-[120px] relative overflow-hidden select-none ${
+                      theme === 'light' ? 'bg-zinc-50 border-zinc-200' : 'bg-[#0f0a21] border-[#261647]'
+                    }`}>
+                      {/* Simpatico mapa em SVG */}
+                      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#3b82f6_1.5px,transparent_1px)] [background-size:16px_16px]" />
+                      
+                      <div className="z-10 text-center space-y-1">
+                        <span className="text-2xl animate-bounce block">📍</span>
+                        <p className={`text-xs font-bold ${theme === 'light' ? 'text-zinc-800' : 'text-slate-100'}`}>Jardim Gláucia, Belford Roxo</p>
+                        <p className="text-[10px] text-slate-400 font-mono">Coordenadas: -22.7567, -43.3999 | Precisão: 12 metros (Origem: GPS)</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Informaçoes adicionais de User-Agent */}
+                  <div className="text-[11px] font-mono p-3 rounded-2xl bg-zinc-550/5 leading-normal text-slate-400 border border-zinc-100/10 whitespace-nowrap overflow-x-auto">
+                    <span className="text-slate-500 font-bold uppercase mr-1">USER-AGENT:</span>
+                    Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Mobile Safari/537.36
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* TAB 1: SSH TUNNEL CLIENT ACCOUNTS */}
             {activeTab === 'contas' && (
               <motion.div
