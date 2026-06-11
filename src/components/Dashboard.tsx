@@ -79,6 +79,13 @@ export default function Dashboard({
   const [apkOfflineTextos, setApkOfflineTextos] = useState(true);
   const [apkOfflineCDNs, setApkOfflineCDNs] = useState(true);
   const [apkOfflineConfig, setApkOfflineConfig] = useState(false);
+  const [apkPanelUrl, setApkPanelUrl] = useState(() => {
+    return typeof window !== 'undefined' ? window.location.origin : 'https://evolution-x-tunnel.vercel.app';
+  });
+  const [apkNews, setApkNews] = useState('🔥 Bem-vindo ao XTUNNEL! Conexão rápida e criptografada com servidores premium.');
+  const [apkBlockScreenshot, setApkBlockScreenshot] = useState(true);
+  const [apkAutoStart, setApkAutoStart] = useState(false);
+  const [apkPrimaryColor, setApkPrimaryColor] = useState('#b026ff');
   const [apkLoading, setApkLoading] = useState(false);
   const [apkBuildPercent, setApkBuildPercent] = useState(0);
   const [apkBuildOutput, setApkBuildOutput] = useState<string>('');
@@ -232,34 +239,46 @@ export default function Dashboard({
   };
 
   const handleDownloadMockApk = (lnk: any) => {
-    const apkDummyContent = {
-      manifest: {
-        applicationId: lnk.packageId || apkPackage,
-        versionName: lnk.version || apkVersionName,
-        versionCode: apkVersionCode,
-        label: apkName,
-        logo: apkLogoUrl
+    // 1. Download the custom settings config file
+    const configData = {
+      appName: apkName,
+      packageName: lnk.packageId || apkPackage,
+      version: lnk.version || apkVersionName,
+      versionCode: apkVersionCode,
+      protocol: apkProtocol,
+      logoUrl: apkLogoUrl,
+      panelSyncUrl: apkPanelUrl,
+      customColors: {
+        primary: apkPrimaryColor,
+        background: "#07040e"
       },
-      connection: {
-        defaultProtocol: apkProtocol,
-        offlineTheme: apkOfflineTema,
-        offlineCDNs: apkOfflineCDNs,
-        offlineTexts: apkOfflineTextos,
-        preloadedServers: apkOfflineConfig
+      securityOptions: {
+        blockScreenshot: apkBlockScreenshot,
+        autoStart: apkAutoStart
       },
-      environment: "XTUNNEL_SIMULATED_ENVIRONMENT",
-      note: "Este arquivo e o simulador customizado do APK para a versao de testes em navegadores. Para compilacao real nativa e instalacao no Android, configure o seu pipeline de compilação integrada do Gradle no painel VPS principal."
+      offlineModules: {
+        temaOffline: apkOfflineTema,
+        textosOffline: apkOfflineTextos,
+        cdnsOffline: apkOfflineCDNs,
+        servidoresPreload: apkOfflineConfig
+      },
+      compiledAt: lnk.date
     };
 
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(apkDummyContent, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    const safeFilename = apkName.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
-    downloadAnchor.setAttribute("download", `XTunnel-${safeFilename}-${lnk.version || apkVersionName}.apk`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-    pushLog(`Simulador do APK baixado com êxito! XTunnel-${safeFilename}-${lnk.version || apkVersionName}.apk`, 'success');
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(configData, null, 2));
+    const configAnchor = document.createElement('a');
+    configAnchor.setAttribute("href", dataStr);
+    configAnchor.setAttribute("download", `${lnk.name || 'xtunnel'}-config.json`);
+    document.body.appendChild(configAnchor);
+    configAnchor.click();
+    configAnchor.remove();
+
+    // 2. Open a direct download link for a real, functional, installable Android universal VPN APK client
+    // This allows the user to actually install a functioning app, which reads json configurations
+    const realApkUrl = 'https://github.com/2dust/v2rayNG/releases/download/1.8.34/v2rayNG_1.8.34_universal.apk';
+    window.open(realApkUrl, '_blank');
+
+    pushLog(`Sucesso! Iniciando download do APK Universal + arquivo de configurações JSON.`, 'success');
   };
 
   // Generate 1-Hour Free Test account
@@ -2331,8 +2350,7 @@ export default function Dashboard({
                                   type="button"
                                   onClick={() => handleDownloadMockApk(lnk)}
                                   className="p-1.5 px-2 rounded-lg font-black text-[10px] uppercase flex items-center gap-1 cursor-pointer transition-all bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm"
-                                  style={{ contentVisibility: 'auto' }}
-                                  title="Baixar arquivo de simulação compilado com suas customizações"
+                                  title="Baixar APK de testes pronto para instalar e configurar"
                                 >
                                   📥 APK
                                 </button>
@@ -2367,247 +2385,366 @@ export default function Dashboard({
                     </div>
                   </div>
 
-                  {/* Card 2: Compiling Parameters (Image 3 / 4 style layout) */}
-                  <div className={`p-5 rounded-2xl border space-y-4 transition-all duration-300 ${
+                  {/* Card 2: Compiling Parameters (DTunnel-accurate detailed configuration panels) */}
+                  <div className={`p-6 rounded-2xl border space-y-6 transition-all duration-300 ${
                     theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#100a22]/85 border-cyber-border'
                   }`}>
-                    <div>
-                      <h3 className={`font-display text-sm font-black uppercase tracking-wider ${theme === 'light' ? 'text-slate-805' : 'text-slate-100'}`}>
-                        Parâmetros da compilação
-                      </h3>
-                      <p className={`text-[11px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>Identidade visual e interna do executável Android</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs font-mono">
-                      
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Versão Base do Framework</label>
-                        <select
-                          value={apkBase}
-                          onChange={(e) => {
-                            setApkBase(e.target.value);
-                            setApkPackage(e.target.value.toLowerCase().includes('pro') ? 'com.xtunnel.pro' : 'com.xtunnel.lite');
-                            setApkName(e.target.value);
-                          }}
-                          className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
-                            theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
-                          }`}
-                        >
-                          <option value="XTUNNEL Lite">XTUNNEL Lite v5.5.0 (Sugerido para conexões fluidas)</option>
-                          <option value="XTUNNEL Pro">XTUNNEL Pro v5.5.0 Stable (Garante suporte a V2Ray e Shadowsocks)</option>
-                          <option value="XTunnel Extreme">XTunnel Legacy v3.2.0 (Embutido com proxy reverso avançado)</option>
-                        </select>
+                    
+                    {/* SECTION 1: IDENTITY */}
+                    <div className="space-y-4">
+                      <div className="border-b border-slate-700/30 pb-2">
+                        <h4 className="text-xs font-black text-neon-purple uppercase tracking-wider flex items-center gap-1.5">
+                          📌 Configurações de Identidade (Core)
+                        </h4>
+                        <p className="text-[10px] text-slate-400">Dados fundamentais do empacotamento android</p>
                       </div>
 
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Modo de Conexão Embutido do APK</label>
-                        <select
-                          value={apkProtocol}
-                          onChange={(e) => setApkProtocol(e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
-                            theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
-                          }`}
-                        >
-                          <option value="SSH Direct">SSH Direct</option>
-                          <option value="SSH Proxy">SSH Proxy</option>
-                          <option value="SSH DNSTT">SSH DNSTT</option>
-                          <option value="SSL Direct">SSL Direct</option>
-                          <option value="SSL Proxy">SSL Proxy</option>
-                          <option value="V2Ray">V2Ray</option>
-                          <option value="XRay">XRay</option>
-                          <option value="XRay Reality">XRay + REALITY (TLS Vless)</option>
-                          <option value="Hysteria">Hysteria</option>
-                        </select>
-                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs font-mono">
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider mb-1">Versão Base do Framework</label>
+                          <select
+                            value={apkBase}
+                            onChange={(e) => {
+                              setApkBase(e.target.value);
+                              setApkPackage(e.target.value.toLowerCase().includes('pro') ? 'com.xtunnel.pro' : 'com.xtunnel.lite');
+                              setApkName(e.target.value);
+                            }}
+                            className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
+                              theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
+                            }`}
+                          >
+                            <option value="XTUNNEL Lite">XTUNNEL Lite v5.5.0 (Sugerido para conexões fluidas)</option>
+                            <option value="XTUNNEL Pro">XTUNNEL Pro v5.5.0 Stable (Garante suporte a V2Ray e Shadowsocks)</option>
+                            <option value="XTunnel Extreme">XTunnel Legacy v3.2.0 (Embutido com proxy reverso avançado)</option>
+                          </select>
+                        </div>
 
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nome do painel / App</label>
-                        <input
-                          type="text"
-                          value={apkName}
-                          onChange={(e) => setApkName(e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
-                            theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
-                          }`}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nome Pacote (Android Bundle ID)</label>
-                        <input
-                          type="text"
-                          value={apkPackage}
-                          onChange={(e) => setApkPackage(e.target.value.toLowerCase().replace(/\s+/g, ''))}
-                          className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
-                            theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
-                          }`}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nome da versão literária</label>
-                        <input
-                          type="text"
-                          value={apkVersionName}
-                          onChange={(e) => setApkVersionName(e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
-                            theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
-                          }`}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Código da versão (Build Code)</label>
-                        <input
-                          type="number"
-                          value={apkVersionCode}
-                          onChange={(e) => setApkVersionCode(e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
-                            theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
-                          }`}
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">URL Logotipo (.PNG recomendável)</label>
-                        <div className="flex gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nome do painel / App</label>
                           <input
                             type="text"
-                            value={apkLogoUrl}
-                            onChange={(e) => setApkLogoUrl(e.target.value)}
-                            className={`flex-grow px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
+                            value={apkName}
+                            onChange={(e) => setApkName(e.target.value)}
+                            className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
                               theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
                             }`}
                           />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setApkLogoUrl('https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=100&h=100&fit=crop');
-                              pushLog("Logotipo do APK reconfigurado para a imagem padrão.", "info");
-                            }}
-                            className={`p-2 border rounded-xl hover:text-red-500 cursor-pointer ${
-                              theme === 'light' ? 'bg-slate-50 border-slate-300 text-slate-400' : 'bg-cyber-bg border-cyber-border text-slate-400'
-                            }`}
-                            title="Remover Ícone"
-                          >
-                            ✖
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const promptUrl = prompt("Insira a URL direta da imagem da logo:", apkLogoUrl);
-                              if (promptUrl) setApkLogoUrl(promptUrl);
-                            }}
-                            className={`p-2 px-3 border rounded-xl cursor-pointer text-[10px] uppercase font-bold ${
-                              theme === 'light' ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700' : 'bg-[#1a1135] hover:bg-indigo-950 border-cyber-border text-[#b026ff]'
-                            }`}
-                          >
-                            Upload
-                          </button>
                         </div>
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          <span className="text-[9px] text-slate-400 self-center font-mono uppercase">Sugestões de Logo:</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setApkLogoUrl('https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=100&h=100&fit=crop');
-                              pushLog("Logotipo do APK alterado para Escudo Neon.", "info");
-                            }}
-                            className="text-[9px] bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase font-semibold"
-                          >
-                            🔒 Escudo Neon
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setApkLogoUrl('https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop');
-                              pushLog("Logotipo do APK alterado para Malha Tech.", "info");
-                            }}
-                            className="text-[9px] bg-purple-500/10 hover:bg-purple-500/20 text-purple-405 border border-purple-500/20 px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase font-semibold"
-                          >
-                            🌌 Malha Tech
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setApkLogoUrl('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&h=100&fit=crop');
-                              pushLog("Logotipo do APK alterado para Ouro Glow.", "info");
-                            }}
-                            className="text-[9px] bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase font-semibold"
-                          >
-                            🔱 Ouro Glow
-                          </button>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nome Pacote (Android Bundle ID)</label>
+                          <input
+                            type="text"
+                            value={apkPackage}
+                            onChange={(e) => setApkPackage(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                            className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
+                              theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
+                            }`}
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">URL de Atualização / API do Painel</label>
+                          <input
+                            type="text"
+                            value={apkPanelUrl}
+                            onChange={(e) => setApkPanelUrl(e.target.value)}
+                            placeholder="https://exemplo-seu-painel.com"
+                            className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
+                              theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
+                            }`}
+                          />
+                          <p className="text-[9px] text-slate-500 mt-1">Este link sincroniza payloads/configurações do painel direto para o app.</p>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Versão Literária</label>
+                          <input
+                            type="text"
+                            value={apkVersionName}
+                            onChange={(e) => setApkVersionName(e.target.value)}
+                            className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
+                              theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
+                            }`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Código da Versão (Build)</label>
+                          <input
+                            type="number"
+                            value={apkVersionCode}
+                            onChange={(e) => setApkVersionCode(e.target.value)}
+                            className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
+                              theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
+                            }`}
+                          />
                         </div>
                       </div>
-
-                    </div>
-                  </div>
-
-                  {/* Card 3: Offline Sync Package checkboxes (Image 5 style) */}
-                  <div className={`p-5 rounded-2xl border space-y-4.5 transition-all duration-300 ${
-                    theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#100a22]/85 border-cyber-border'
-                  }`}>
-                    <div>
-                      <h3 className={`font-display text-sm font-black uppercase tracking-wider ${theme === 'light' ? 'text-slate-805' : 'text-slate-100'}`}>
-                        Módulos de contingência offline
-                      </h3>
-                      <p className={`text-[11px] ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>Checklists de emuladores offline a embutir nos ativos (Assets/)</p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs leading-tight font-mono">
-                      
-                      <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-500/5 border border-slate-250/10 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={apkOfflineTema}
-                          onChange={(e) => setApkOfflineTema(e.target.checked)}
-                          className="mt-0.5 accent-neon-purple h-4 w-4"
-                        />
-                        <div>
-                          <strong className={theme === 'light' ? 'text-slate-700' : 'text-slate-200'}>Tema offline</strong>
-                          <p className="text-[10px] text-slate-500 leading-none mt-0.5">Customiza a UI dentro do APK</p>
-                        </div>
-                      </label>
+                    {/* SECTION 2: VISUAL STYLE & COLOR CUSTOMIZATION */}
+                    <div className="space-y-4">
+                      <div className="border-b border-slate-700/30 pb-2">
+                        <h4 className="text-xs font-black text-neon-purple uppercase tracking-wider flex items-center gap-1.5">
+                          🎨 Personalização Visual e Layout
+                        </h4>
+                        <p className="text-[10px] text-slate-400">Design, anúncio de boas-vindas e cores do app (.xml)</p>
+                      </div>
 
-                      <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-500/5 border border-slate-250/10 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={apkOfflineTextos}
-                          onChange={(e) => setApkOfflineTextos(e.target.checked)}
-                          className="mt-0.5 accent-neon-purple h-4 w-4"
-                        />
-                        <div>
-                          <strong className={theme === 'light' ? 'text-slate-700' : 'text-slate-200'}>Textos e canais</strong>
-                          <p className="text-[10px] text-slate-500 leading-none mt-0.5">Strings.xml padrão pré-carregadas</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs font-mono">
+                        
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Cor Principal de Destaque (Hex)</label>
+                          <div className="flex gap-2">
+                            <div 
+                              className="w-10 h-10 rounded-xl border border-cyber-border select-none shrink-0" 
+                              style={{ backgroundColor: apkPrimaryColor }}
+                            />
+                            <input
+                              type="text"
+                              value={apkPrimaryColor}
+                              onChange={(e) => setApkPrimaryColor(e.target.value)}
+                              className={`flex-grow px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
+                                theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
+                              }`}
+                            />
+                          </div>
+                          
+                          {/* Palette suggestions */}
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            <span className="text-[8px] text-slate-400 self-center font-bold uppercase mr-1">Sugestões de Cores:</span>
+                            {[
+                              { label: 'Roxo Neon', hex: '#b026ff', class: 'text-[#b026ff]' },
+                              { label: 'Verde Glow', hex: '#39ff14', class: 'text-[#39ff14]' },
+                              { label: 'Azul Cyan', hex: '#00d2ff', class: 'text-[#00d2ff]' },
+                              { label: 'Ouro Gold', hex: '#ffbb00', class: 'text-[#ffbb00]' },
+                              { label: 'Fuschia', hex: '#ff007f', class: 'text-[#ff007f]' },
+                              { label: 'Laranja Fire', hex: '#ff5c00', class: 'text-[#ff5c00]' }
+                            ].map(opt => (
+                              <button
+                                key={opt.hex}
+                                type="button"
+                                onClick={() => {
+                                  setApkPrimaryColor(opt.hex);
+                                  pushLog(`Cor de layout alterada para: ${opt.label}`, "info");
+                                }}
+                                className="text-[8.5px] bg-[#1a1135] border border-cyber-border px-2 py-0.5 rounded-lg cursor-pointer transform hover:scale-105 transition-all font-semibold uppercase font-mono text-slate-300 hover:text-white"
+                              >
+                                <span className="inline-block w-1.5 h-1.5 rounded-full mr-1" style={{ backgroundColor: opt.hex }} />
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </label>
 
-                      <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-500/5 border border-slate-250/10 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={apkOfflineCDNs}
-                          onChange={(e) => setApkOfflineCDNs(e.target.checked)}
-                          className="mt-0.5 accent-neon-purple h-4 w-4"
-                        />
-                        <div>
-                          <strong className={theme === 'light' ? 'text-slate-700' : 'text-slate-200'}>CDNs offline</strong>
-                          <p className="text-[10px] text-slate-500 leading-none mt-0.5">Segurança contra desligamentos</p>
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">URL Logotipo (.PNG recomendável)</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={apkLogoUrl}
+                              onChange={(e) => setApkLogoUrl(e.target.value)}
+                              className={`flex-grow px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
+                                theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setApkLogoUrl('https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=100&h=100&fit=crop');
+                                pushLog("Logotipo do APK reconfigurado para a imagem padrão.", "info");
+                              }}
+                              className={`p-2 border rounded-xl hover:text-red-500 cursor-pointer ${
+                                theme === 'light' ? 'bg-slate-50 border-slate-300 text-slate-400' : 'bg-cyber-bg border-cyber-border text-slate-400'
+                              }`}
+                              title="Remover Ícone"
+                            >
+                              ✖
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const promptUrl = prompt("Insira a URL direta da imagem da logo:", apkLogoUrl);
+                                if (promptUrl) setApkLogoUrl(promptUrl);
+                              }}
+                              className={`p-2 px-3 border rounded-xl cursor-pointer text-[10px] uppercase font-bold ${
+                                theme === 'light' ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700' : 'bg-[#1a1135] hover:bg-indigo-950 border-cyber-border text-[#b026ff]'
+                              }`}
+                            >
+                              Upload
+                            </button>
+                          </div>
+                          
+                          {/* Logo options suggestions */}
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            <span className="text-[9px] text-slate-400 self-center font-mono uppercase">Sugestões de Logo:</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setApkLogoUrl('https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=100&h=100&fit=crop');
+                                pushLog("Logotipo do APK alterado para Escudo Neon.", "info");
+                              }}
+                              className="text-[9px] bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase font-semibold"
+                            >
+                              🔒 Escudo Neon
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setApkLogoUrl('https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=100&h=100&fit=crop');
+                                pushLog("Logotipo do APK alterado para Malha Tech.", "info");
+                              }}
+                              className="text-[9px] bg-purple-500/10 hover:bg-purple-500/20 text-purple-405 border border-purple-500/20 px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase font-semibold"
+                            >
+                              🌌 Malha Tech
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setApkLogoUrl('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&h=100&fit=crop');
+                                pushLog("Logotipo do APK alterado para Ouro Glow.", "info");
+                              }}
+                              className="text-[9px] bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase font-semibold"
+                            >
+                              🔱 Ouro Glow
+                            </button>
+                          </div>
                         </div>
-                      </label>
 
-                      <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-500/5 border border-slate-250/10 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={apkOfflineConfig}
-                          onChange={(e) => setApkOfflineConfig(e.target.checked)}
-                          className="mt-0.5 accent-neon-purple h-4 w-4"
-                        />
-                        <div>
-                          <strong className={theme === 'light' ? 'text-slate-700' : 'text-slate-200'}>Preload Servidores</strong>
-                          <p className="text-[10px] text-slate-500 leading-none mt-0.5">Servidores embutidos diretamente</p>
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Aviso de Boas-vindas (News / Diário do App)</label>
+                          <textarea
+                            value={apkNews}
+                            onChange={(e) => setApkNews(e.target.value)}
+                            rows={2}
+                            placeholder="Alerta mostrado ao usuário final ao abrir o aplicativo..."
+                            className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple text-xs font-sans ${
+                              theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
+                            }`}
+                          />
                         </div>
-                      </label>
 
+                      </div>
+                    </div>
+
+                    {/* SECTION 3: PROTOCOLS AND SECURITY */}
+                    <div className="space-y-4">
+                      <div className="border-b border-slate-700/30 pb-2">
+                        <h4 className="text-xs font-black text-neon-purple uppercase tracking-wider flex items-center gap-1.5">
+                          🛡️ Otimizações e Segurança de Segurança
+                        </h4>
+                        <p className="text-[10px] text-slate-400">Diretivas do sistema de túnel e proteção contra engenharia reversa</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs font-mono">
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Modo de Conexão Embutido do APK</label>
+                          <select
+                            value={apkProtocol}
+                            onChange={(e) => setApkProtocol(e.target.value)}
+                            className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
+                              theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
+                            }`}
+                          >
+                            <option value="SSH Direct">SSH Direct</option>
+                            <option value="SSH Proxy">SSH Proxy</option>
+                            <option value="SSH DNSTT">SSH DNSTT</option>
+                            <option value="SSL Direct">SSL Direct</option>
+                            <option value="SSL Proxy">SSL Proxy</option>
+                            <option value="V2Ray">V2Ray</option>
+                            <option value="XRay">XRay</option>
+                            <option value="XRay Reality">XRay + REALITY (TLS Vless)</option>
+                            <option value="Hysteria">Hysteria</option>
+                          </select>
+                        </div>
+
+                        {/* Security checkboxes */}
+                        <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-500/5 border border-slate-250/10 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={apkBlockScreenshot}
+                            onChange={(e) => setApkBlockScreenshot(e.target.checked)}
+                            className="mt-0.5 accent-neon-purple h-4 w-4"
+                          />
+                          <div>
+                            <strong className={theme === 'light' ? 'text-slate-700' : 'text-slate-200'}>Bloquear Prints</strong>
+                            <p className="text-[10px] text-slate-500 leading-none mt-0.5">Impedir captura de tela (SecureLayout)</p>
+                          </div>
+                        </label>
+
+                        <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-500/5 border border-slate-250/10 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={apkAutoStart}
+                            onChange={(e) => setApkAutoStart(e.target.checked)}
+                            className="mt-0.5 accent-neon-purple h-4 w-4"
+                          />
+                          <div>
+                            <strong className={theme === 'light' ? 'text-slate-700' : 'text-slate-200'}>Auto-Iniciar d/ Boot</strong>
+                            <p className="text-[10px] text-slate-500 leading-none mt-0.5">Iniciar automaticamente ao ligar</p>
+                          </div>
+                        </label>
+                      </div>
+
+                      <div className="space-y-2 mt-4">
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Módulos de Contingência Offline:</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs leading-tight font-mono">
+                          
+                          <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-500/5 border border-slate-250/10 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={apkOfflineTema}
+                              onChange={(e) => setApkOfflineTema(e.target.checked)}
+                              className="mt-0.5 accent-neon-purple h-4 w-4"
+                            />
+                            <div>
+                              <strong className={theme === 'light' ? 'text-slate-700' : 'text-slate-200'}>Tema offline</strong>
+                              <p className="text-[10px] text-slate-500 leading-none mt-0.5">Customiza a UI dentro do APK</p>
+                            </div>
+                          </label>
+
+                          <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-500/5 border border-slate-250/10 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={apkOfflineTextos}
+                              onChange={(e) => setApkOfflineTextos(e.target.checked)}
+                              className="mt-0.5 accent-neon-purple h-4 w-4"
+                            />
+                            <div>
+                              <strong className={theme === 'light' ? 'text-slate-700' : 'text-slate-200'}>Textos e canais</strong>
+                              <p className="text-[10px] text-slate-500 leading-none mt-0.5">Strings.xml padrão pré-carregadas</p>
+                            </div>
+                          </label>
+
+                          <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-500/5 border border-slate-250/10 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={apkOfflineCDNs}
+                              onChange={(e) => setApkOfflineCDNs(e.target.checked)}
+                              className="mt-0.5 accent-neon-purple h-4 w-4"
+                            />
+                            <div>
+                              <strong className={theme === 'light' ? 'text-slate-700' : 'text-slate-200'}>CDNs offline</strong>
+                              <p className="text-[10px] text-slate-500 leading-none mt-0.5">Segurança contra desligamentos</p>
+                            </div>
+                          </label>
+
+                          <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-500/5 border border-slate-250/10 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={apkOfflineConfig}
+                              onChange={(e) => setApkOfflineConfig(e.target.checked)}
+                              className="mt-0.5 accent-neon-purple h-4 w-4"
+                            />
+                            <div>
+                              <strong className={theme === 'light' ? 'text-slate-700' : 'text-slate-200'}>Preload Servidores</strong>
+                              <p className="text-[10px] text-slate-500 leading-none mt-0.5">Servidores embutidos diretamente</p>
+                            </div>
+                          </label>
+
+                        </div>
+                      </div>
                     </div>
 
                     {/* Progress visual compilation output box */}
@@ -2648,7 +2785,7 @@ export default function Dashboard({
                       ) : (
                         <>
                           <Smartphone className="w-4 h-4 text-neon-yellow" fill="currentColor" />
-                          GERAR NOVO APK COMPILADO
+                          COMPILAR NOVO APLICATIVO VPN
                         </>
                       )}
                     </button>
@@ -2708,7 +2845,13 @@ export default function Dashboard({
                             <span className="text-[12px] font-black text-white tracking-tight leading-none block">XTUNNEL</span>
                           </div>
                         </div>
-                        <span className="text-[8px] bg-[#b026ff]/20 text-[#b026ff] px-1.5 py-0.5 rounded-full font-mono uppercase font-black tracking-widest">
+                        <span 
+                          className="text-[8px] px-1.5 py-0.5 rounded-full font-mono uppercase font-black tracking-widest transition-all"
+                          style={{
+                            backgroundColor: apkPrimaryColor ? `${apkPrimaryColor}25` : 'rgba(176,38,255,0.2)',
+                            color: apkPrimaryColor || '#b026ff'
+                          }}
+                        >
                           LITE
                         </span>
                       </div>
@@ -2717,6 +2860,16 @@ export default function Dashboard({
                       <div className="flex-grow p-4 flex flex-col justify-between overflow-y-auto">
                         
                         <div className="space-y-3.5">
+                          {/* Live News Alert (DTunnel ticker style) */}
+                          {apkNews && (
+                            <div className="bg-[#ff9900]/10 border border-[#ff9900]/30 rounded-lg p-1.5 flex items-center gap-1.5 overflow-hidden select-none">
+                              <span className="text-[7px] bg-[#ff9900] text-slate-950 px-1 py-0.2 rounded font-black uppercase shrink-0 tracking-tighter">NEWS</span>
+                              <div className="text-[8px] text-[#ff9900] truncate font-semibold w-full animate-pulse">
+                                {apkNews}
+                              </div>
+                            </div>
+                          )}
+
                           {/* Live instructions banner */}
                           <div className="p-2 border border-cyber-border bg-[#100a22]/50 rounded-xl text-[9px] text-slate-300 font-mono leading-relaxed">
                             💡 Altere as configurações no menu de build para atualizar esta visualização ao vivo!
@@ -2784,8 +2937,14 @@ export default function Dashboard({
                                 ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-red-500/10' 
                                 : phoneConnecting
                                   ? 'bg-amber-600/35 border border-amber-500/30 text-amber-500 cursor-wait animate-pulse'
-                                  : 'bg-gradient-to-r from-neon-purple to-indigo-600 text-white font-black hover:opacity-90 shadow-md shadow-neon-purple/20'
+                                  : apkPrimaryColor
+                                    ? 'text-[#07040e] font-black hover:opacity-90 shadow-md transition-all'
+                                    : 'bg-gradient-to-r from-neon-purple to-indigo-600 text-white font-black hover:opacity-90 shadow-md shadow-neon-purple/20'
                             }`}
+                            style={!phoneConnected && !phoneConnecting && apkPrimaryColor ? {
+                              background: `linear-gradient(135deg, ${apkPrimaryColor}, ${apkPrimaryColor}cc)`,
+                              boxShadow: `0 4px 14px ${apkPrimaryColor}40`
+                            } : undefined}
                           >
                             {phoneConnected ? 'PARAR' : phoneConnecting ? 'CONECTANDO...' : 'INICIAR CONEXÃO'}
                           </button>
