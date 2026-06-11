@@ -414,6 +414,56 @@ export default function Dashboard({
   const [phoneConnecting, setPhoneConnecting] = useState(false);
   const [phoneStatusText, setPhoneStatusText] = useState('DESCONECTADO');
   const [phoneLogs, setPhoneLogs] = useState<string[]>(['Esperando inicialização...']);
+  const [selectedPhoneServer, setSelectedPhoneServer] = useState<string>(allServers[0]?.id || 'srv_1');
+
+  // DTunnel Dynamic Telemetry Statistics
+  const [simulatedUpBytes, setSimulatedUpBytes] = useState(0);
+  const [simulatedDownBytes, setSimulatedDownBytes] = useState(0);
+  const [simulatedTime, setSimulatedTime] = useState(0);
+  const [simulatedPing, setSimulatedPing] = useState(45);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (phoneConnected) {
+      setSimulatedUpBytes(Math.floor(Math.random() * 50000) + 12000);
+      setSimulatedDownBytes(Math.floor(Math.random() * 150000) + 45000);
+      setSimulatedTime(0);
+      setSimulatedPing(Math.floor(Math.random() * 25) + 32);
+      
+      timer = setInterval(() => {
+        setSimulatedTime(prev => prev + 1);
+        setSimulatedUpBytes(prev => prev + Math.floor(Math.random() * 1800) + 150);
+        setSimulatedDownBytes(prev => prev + Math.floor(Math.random() * 12500) + 850);
+        // Slowly drift ping
+        setSimulatedPing(prev => {
+          const drift = Math.floor(Math.random() * 9) - 4;
+          const next = prev + drift;
+          return next > 10 && next < 120 ? next : prev;
+        });
+      }, 1000);
+    } else {
+      setSimulatedUpBytes(0);
+      setSimulatedDownBytes(0);
+      setSimulatedTime(0);
+      setSimulatedPing(0);
+    }
+    return () => clearInterval(timer);
+  }, [phoneConnected]);
+
+  const formatBytesSim = (bytes: number) => {
+    if (bytes <= 0) return '0.00 KB';
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(2)} KB`;
+    const mb = kb / 1024;
+    return `${mb.toFixed(2)} MB`;
+  };
+
+  const formatTimeSim = (seconds: number) => {
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
 
   // Handle phone simulated tunnel connection
   const handleTogglePhoneConnection = () => {
@@ -2805,156 +2855,305 @@ export default function Dashboard({
                   }`}>
                     
                     {/* Perfect Phone structure mimicking Image 8 screen app interface */}
-                    <div className="w-full max-w-[285px] bg-[#07040e] border-[7px] border-slate-950 rounded-[36px] shadow-2xl overflow-hidden flex flex-col select-none relative h-[530px]">
+                    <div className="w-full max-w-[285px] bg-[#090514] border-[8px] border-slate-900 rounded-[38px] shadow-2xl overflow-hidden flex flex-col select-none relative h-[545px]">
                       
                       {/* Top camera/speaker notch */}
-                      <div className="absolute top-2.5 left-1/2 -translate-x-1/2 h-4 w-20 bg-slate-950 rounded-full z-20 flex items-center justify-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-800" />
-                        <span className="w-5 h-0.5 bg-slate-800 rounded" />
+                      <div className="absolute top-2.5 left-1/2 -translate-x-1/2 h-3.5 w-18 bg-slate-900 rounded-full z-20 flex items-center justify-center gap-1">
+                        <span className="w-1 h-1 rounded-full bg-slate-800" />
+                        <span className="w-3.5 h-0.5 bg-slate-800 rounded" />
                       </div>
 
                       {/* Phone internal screen status bar */}
-                      <div className="h-6.5 bg-[#100a22] flex items-center justify-between px-4 pt-1 font-mono text-[9px] text-slate-450 text-slate-300 select-none z-10 shrink-0">
+                      <div className="h-6.5 bg-[#0e0a1d] flex items-center justify-between px-4 pt-1 font-mono text-[8px] text-slate-400 select-none z-10 shrink-0">
                         <span>12:45</span>
-                        <div className="flex items-center gap-1 text-[8px]">
-                          <span>5G</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[7px]">⚡ LTE</span>
                           <span className="leading-none text-neon-green">🔋 100%</span>
                         </div>
                       </div>
 
-                      {/* Phone inner title & logo */}
-                      <div className="p-4 bg-gradient-to-b from-[#100a22] to-[#07040e] flex items-center justify-between border-b border-cyber-border/40 min-h-[50px] shrink-0">
-                        <div className="flex items-center gap-1.5">
+                      {/* DTunnel Custom Header Action Bar (styled using user's selected primary color or fallback) */}
+                      <div 
+                        className="h-11 px-3 flex items-center justify-between shadow-md shrink-0 border-b border-white/5 transition-all"
+                        style={{
+                          background: `linear-gradient(135deg, ${apkPrimaryColor || '#b026ff'}, ${apkPrimaryColor || '#b026ff'}dd)`
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          {/* Drawer menu icon */}
+                          <button 
+                            type="button" 
+                            className="text-white hover:opacity-80 p-0.5 active:scale-95 cursor-pointer"
+                            onClick={() => {
+                              setPhoneLogs(prev => [...prev, '⚙️ [Menu] Abrindo menu de configurações lateral (Simulado)...']);
+                              pushLog('Simulador: Menu lateral do aplicativo aberto', 'info');
+                            }}
+                            title="Abrir Menu"
+                          >
+                            <svg className="w-4 h-4 fill-current text-white" viewBox="0 0 24 24">
+                              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                            </svg>
+                          </button>
+                          
+                          {/* Mini Avatar / Custom logo */}
                           {apkLogoUrl ? (
                             <img
                               src={apkLogoUrl}
                               alt="Logo"
-                              className="w-6 h-6 rounded-md object-cover border border-[#b026ff]/30"
+                              className="w-5 h-5 rounded object-cover border border-white/20"
                               referrerPolicy="no-referrer"
                               onError={(e) => {
                                 e.currentTarget.src = 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=100&h=100&fit=crop';
                               }}
                             />
                           ) : (
-                            <div className="bg-neon-purple/10 border border-neon-purple text-neon-yellow font-display font-black text-[9px] h-6 w-7 rounded-md flex items-center justify-center tracking-tighter">
-                              EV
+                            <div className="w-5 h-5 rounded bg-white/20 flex items-center justify-center text-[10px] text-white font-bold">
+                              X
                             </div>
                           )}
-                          <div>
-                            <span className="text-[7px] font-bold text-shadow-green tracking-[0.15em] text-neon-green block -mb-0.5 font-mono">EVOLUTION</span>
-                            <span className="text-[12px] font-black text-white tracking-tight leading-none block">XTUNNEL</span>
+                          
+                          {/* App Name/Title */}
+                          <span className="text-white text-[11px] font-black uppercase tracking-tight truncate max-w-[120px]">
+                            {apkName || 'XTUNNEL LITE'}
+                          </span>
+                        </div>
+
+                        {/* Header actions: Refresh payload and sync bell */}
+                        <div className="flex items-center gap-2">
+                          <button 
+                            type="button"
+                            title="Sincronizar Arquivos"
+                            onClick={() => {
+                              setPhoneLogs(prev => [
+                                ...prev, 
+                                '🔄 [Sincronizar] Verificando novas configurações no servidor...',
+                                '✔️ Versão das configurações atualizada e otimizada com sucesso!'
+                              ]);
+                              pushLog('Simulador: Arquivos de Payloads sincronizados no aparelho', 'success');
+                            }}
+                            className="text-white hover:rotate-180 transition-transform duration-500 p-0.5 active:scale-95 cursor-pointer"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* News Bar / Announcement */}
+                      {apkNews && (
+                        <div className="bg-amber-500/10 border-b border-amber-500/15 py-1 px-3 flex items-center gap-1.5 overflow-hidden select-none whitespace-nowrap scroll-smooth shrink-0">
+                          <span className="text-[7px] bg-amber-500 text-slate-950 px-1 py-0.2 rounded font-black uppercase tracking-tight shrink-0">AVISO</span>
+                          <div className="text-[8px] text-amber-500 font-bold truncate animate-pulse w-full">
+                            {apkNews}
                           </div>
                         </div>
-                        <span 
-                          className="text-[8px] px-1.5 py-0.5 rounded-full font-mono uppercase font-black tracking-widest transition-all"
-                          style={{
-                            backgroundColor: apkPrimaryColor ? `${apkPrimaryColor}25` : 'rgba(176,38,255,0.2)',
-                            color: apkPrimaryColor || '#b026ff'
-                          }}
-                        >
-                          LITE
-                        </span>
+                      )}
+
+                      {/* Live Dynamic Telecom Statistics Board */}
+                      <div className="grid grid-cols-4 gap-1 px-3 py-1.5 bg-[#120c27]/80 border-b border-cyber-border/45 text-[7px] font-mono text-slate-350 shrink-0 select-none">
+                        <div className="flex flex-col items-center justify-center p-1 bg-black/40 rounded border border-cyber-border/20">
+                          <span className="text-[6px] text-slate-500 uppercase font-bold">Upload</span>
+                          <span className="text-neon-yellow font-black truncate">{phoneConnected ? formatBytesSim(simulatedUpBytes) : '0.00 KB'}</span>
+                        </div>
+                        <div className="flex flex-col items-center justify-center p-1 bg-black/40 rounded border border-cyber-border/20">
+                          <span className="text-[6px] text-slate-500 uppercase font-bold">Download</span>
+                          <span className="text-neon-purple font-black truncate">{phoneConnected ? formatBytesSim(simulatedDownBytes) : '0.00 KB'}</span>
+                        </div>
+                        <div className="flex flex-col items-center justify-center p-1 bg-black/40 rounded border border-cyber-border/20">
+                          <span className="text-[6px] text-slate-500 uppercase font-bold">Tempo</span>
+                          <span className="text-neon-green font-black">{phoneConnected ? formatTimeSim(simulatedTime) : '00:00:00'}</span>
+                        </div>
+                        <div className="flex flex-col items-center justify-center p-1 bg-black/40 rounded border border-cyber-border/20">
+                          <span className="text-[6px] text-slate-500 uppercase font-bold">Latência</span>
+                          <span className="text-emerald-400 font-bold">{phoneConnected ? `${simulatedPing} ms` : 'N/A'}</span>
+                        </div>
                       </div>
 
                       {/* Device body background preview */}
-                      <div className="flex-grow p-4 flex flex-col justify-between overflow-y-auto">
+                      <div className="flex-grow p-3 flex flex-col justify-between overflow-y-auto space-y-3 bg-[#0a0616]/95">
                         
-                        <div className="space-y-3.5">
-                          {/* Live News Alert (DTunnel ticker style) */}
-                          {apkNews && (
-                            <div className="bg-[#ff9900]/10 border border-[#ff9900]/30 rounded-lg p-1.5 flex items-center gap-1.5 overflow-hidden select-none">
-                              <span className="text-[7px] bg-[#ff9900] text-slate-950 px-1 py-0.2 rounded font-black uppercase shrink-0 tracking-tighter">NEWS</span>
-                              <div className="text-[8px] text-[#ff9900] truncate font-semibold w-full animate-pulse">
-                                {apkNews}
+                        <div className="space-y-2.5">
+                          {/* Live instructions banner */}
+                          <div className="p-2 border border-cyber-border bg-[#100a22]/50 rounded-xl text-[8px] text-slate-300 font-mono leading-relaxed select-text">
+                            💡 Altere as customizações ao lado esquerdo para ver as atualizações ao vivo neste layout de VPN!
+                          </div>
+
+                          {/* 1st CARD: SELECIONE O SERVIDOR */}
+                          <div className="bg-[#12082b] border border-cyber-border/50 rounded-xl p-2 transition-all hover:border-[#b026ff]/40">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <Server className="w-3.5 h-3.5 text-neon-green" />
+                              <span className="text-[8px] uppercase tracking-wider font-bold text-slate-300">Servidor de Conexão</span>
+                            </div>
+                            <div className="relative">
+                              <select
+                                value={selectedPhoneServer}
+                                onChange={(e) => {
+                                  const srvId = e.target.value;
+                                  setSelectedPhoneServer(srvId);
+                                  const srv = allServers.find(s => s.id === srvId);
+                                  const srvName = srv ? srv.name : 'Servidor Padrão';
+                                  setPhoneLogs(prev => [
+                                    ...prev, 
+                                    `🌐 [Servidor] Mudando canal de conexão para: ${srvName}`,
+                                    `✔️ Servidor com latência de ${srv?.latency || '45'}ms selecionado.`
+                                  ]);
+                                  pushLog(`Simulador: Servidor alterado para ${srvName}`, 'info');
+                                }}
+                                className="w-full pl-2 pr-6 py-1.5 bg-[#090414] border border-cyber-border rounded-lg text-[9px] text-white font-mono uppercase focus:outline-none focus:border-neon-purple cursor-pointer appearance-none"
+                              >
+                                {allServers.length > 0 ? (
+                                  allServers.map(s => (
+                                    <option key={s.id} value={s.id}>
+                                      🇧🇷 {s.name.toUpperCase()}
+                                    </option>
+                                  ))
+                                ) : (
+                                  <>
+                                    <option value="srv_1">🇧🇷 BR-01 PREMIUM CLOUD [SSH]</option>
+                                    <option value="srv_2">🇧🇷 BR-02 CLARO/VIVO/TIM DIRECT</option>
+                                    <option value="srv_3">🇺🇸 USA-01 V2RAY HIGH-SPEED</option>
+                                  </>
+                                )}
+                              </select>
+                              <span className="absolute right-2 top-2 pointer-events-none text-slate-400 text-[8px]">▼</span>
+                            </div>
+                          </div>
+
+                          {/* 2nd CARD: SELECIONE A EXECUTOR / PAYLOAD METHOD */}
+                          <div className="bg-[#12082b] border border-cyber-border/50 rounded-xl p-2 transition-all hover:border-[#b026ff]/40">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <Radio className="w-3.5 h-3.5 text-neon-purple" />
+                              <span className="text-[8px] uppercase tracking-wider font-bold text-slate-300">Método de Conexão Tweak</span>
+                            </div>
+                            <div className="relative">
+                              <select
+                                value={selectedPhonePayload}
+                                onChange={(e) => {
+                                  const payId = e.target.value;
+                                  setSelectedPhonePayload(payId);
+                                  const payObj = allPayloads.find(p => p.id === payId);
+                                  const payName = payObj ? payObj.name : 'Payload Custom';
+                                  setPhoneLogs(prev => [
+                                    ...prev, 
+                                    `🔌 [Tweak] Payload injetável alterado para: ${payName}`,
+                                    `💡 Método definido: ${payObj?.protocol || 'SSH Direct'} (SNI: ${payObj?.sni || 'localhost'})`
+                                  ]);
+                                  pushLog(`Simulador: Tweak alterado para ${payName}`, 'info');
+                                }}
+                                className="w-full pl-2 pr-6 py-1.5 bg-[#090414] border border-cyber-border rounded-lg text-[9px] text-white font-mono uppercase focus:outline-none focus:border-neon-purple cursor-pointer appearance-none"
+                              >
+                                {allPayloads.length > 0 ? (
+                                  allPayloads.map(p => (
+                                    <option key={p.id} value={p.id} className="text-white">
+                                      🚀 {p.carrier.toUpperCase()} - {p.name}
+                                    </option>
+                                  ))
+                                ) : (
+                                  <>
+                                    <option value="pay_1">🚀 VIVO DIRECT SPEED</option>
+                                    <option value="pay_2">🚀 CLARO PAYLOAD ILIMITADO</option>
+                                    <option value="pay_3">🚀 TIM SSH DIRECT NET</option>
+                                  </>
+                                )}
+                              </select>
+                              <span className="absolute right-2 top-2 pointer-events-none text-slate-400 text-[8px]">▼</span>
+                            </div>
+                          </div>
+
+                          {/* 3rd CARD: CREDENCIAIS USUÁRIO ENTRADA */}
+                          <div className="bg-[#12082b] border border-cyber-border/50 rounded-xl p-2 transition-all hover:border-[#b026ff]/40">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <Shield className="w-3.5 h-3.5 text-neon-yellow" />
+                              <span className="text-[8px] uppercase tracking-wider font-bold text-slate-300">Credenciais VPN</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-[9px] font-mono">
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  placeholder="Usuário"
+                                  value={phoneUsername}
+                                  onChange={(e) => setPhoneUsername(e.target.value)}
+                                  className="w-full pl-6 pr-1.5 py-1.5 bg-[#090414] border border-cyber-border rounded-lg text-white text-[9px] focus:outline-none focus:border-[#b026ff]"
+                                />
+                                <Users className="absolute left-1.5 top-2 w-3.5 h-3.5 text-slate-400" />
+                              </div>
+                              <div className="relative">
+                                <input
+                                  type="password"
+                                  placeholder="Senha"
+                                  value={phonePassword}
+                                  onChange={(e) => setPhonePassword(e.target.value)}
+                                  className="w-full pl-6 pr-1.5 py-1.5 bg-[#090414] border border-cyber-border rounded-lg text-white text-[9px] focus:outline-none focus:border-[#b026ff]"
+                                />
+                                <Key className="absolute left-1.5 top-2 w-3.5 h-3.5 text-slate-400" />
                               </div>
                             </div>
-                          )}
-
-                          {/* Live instructions banner */}
-                          <div className="p-2 border border-cyber-border bg-[#100a22]/50 rounded-xl text-[9px] text-slate-300 font-mono leading-relaxed">
-                            💡 Altere as configurações no menu de build para atualizar esta visualização ao vivo!
                           </div>
 
-                          {/* Connection profile selector dropdown emulator */}
-                          <div className="space-y-1">
-                            <span className="block text-[8px] uppercase tracking-wider text-slate-400 font-bold ml-1">Configuração de Payload</span>
-                            <select
-                              value={selectedPhonePayload}
-                              onChange={(e) => setSelectedPhonePayload(e.target.value)}
-                              className="w-full px-2.5 py-2 hover:bg-[#1a1135]/80 bg-[#100a22] border border-cyber-border rounded-xl text-[10px] text-white font-mono uppercase focus:outline-none focus:border-neon-purple cursor-pointer"
-                            >
-                              {allPayloads.map(p => (
-                                <option key={p.id} value={p.id} className="text-white bg-[#07040e]">
-                                  🚀 {p.carrier.toUpperCase()} - {p.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          {/* Login credentials fields */}
-                          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                            <div>
-                              <span className="block text-[8px] uppercase tracking-wider text-slate-400 font-bold ml-1 mb-0.5">Usuário</span>
-                              <input
-                                type="text"
-                                value={phoneUsername}
-                                onChange={(e) => setPhoneUsername(e.target.value)}
-                                className="w-full px-2.5 py-1.5 bg-[#100a22] border border-cyber-border text-white text-[10px] rounded-xl focus:outline-none"
-                              />
+                          {/* 4th CARD: CONSOLE TÚNEL */}
+                          <div className="bg-[#050209] border border-cyber-border/40 rounded-xl p-2 space-y-1">
+                            <div className="flex items-center justify-between text-[7px] font-bold tracking-wider font-mono uppercase text-slate-400 border-b border-cyber-border/30 pb-1">
+                              <span className="flex items-center gap-1"><Activity className="w-2.5 h-2.5 text-neon-green" /> Console do Túnel</span>
+                              <span className="text-neon-purple">XTUNNEL ENGINE</span>
                             </div>
-                            <div>
-                              <span className="block text-[8px] uppercase tracking-wider text-slate-400 font-bold ml-1 mb-0.5">Senha</span>
-                              <input
-                                type="password"
-                                value={phonePassword}
-                                onChange={(e) => setPhonePassword(e.target.value)}
-                                className="w-full px-2.5 py-1.5 bg-[#100a22] border border-cyber-border text-white text-[10px] rounded-xl focus:outline-none"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Terminal logs viewport inside telephone */}
-                          <div className="space-y-1 font-mono text-[8px]">
-                            <span className="block uppercase tracking-wider text-[7px] text-[#39ff14]/80 ml-1">Console do Túnel</span>
-                            <div className="w-full h-[95px] bg-[#030107] border border-cyber-border/80 rounded-xl p-2 overflow-y-auto leading-normal text-slate-400">
+                            <div className="h-[52px] overflow-y-auto leading-normal text-slate-400 font-mono text-[7px] space-y-0.5 select-text">
                               {phoneLogs.map((log, idx) => (
                                 <p key={idx} className="truncate">
                                   {log}
                                 </p>
                               ))}
-                              {phoneConnecting && <span className="inline-block h-2 w-1.5 bg-[#39ff14] animate-pulse ml-0.5" />}
+                              {phoneConnecting && <span className="inline-block h-2.5 w-1.5 bg-neon-green animate-pulse ml-0.5" />}
                             </div>
                           </div>
+
                         </div>
 
-                        {/* Large Connection Button Container with interactive glows */}
-                        <div className="space-y-3 pt-2">
+                        {/* Large Connection Button Stadium Layout & Footer */}
+                        <div className="space-y-2 pt-1">
                           <button
                             type="button"
                             onClick={handleTogglePhoneConnection}
-                            className={`w-full py-2.5 rounded-2xl font-bold text-xs uppercase tracking-widest cursor-pointer transition-all flex items-center justify-center gap-1 ${
+                            className={`w-full py-2.5 rounded-full font-black text-[11px] uppercase tracking-widest cursor-pointer transition-all flex items-center justify-center gap-1.5 relative overflow-hidden group select-none active:scale-[0.98] ${
                               phoneConnected 
-                                ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-red-500/10' 
+                                ? 'bg-red-600 border border-red-500 hover:bg-red-700 text-white shadow-lg shadow-red-600/30' 
                                 : phoneConnecting
                                   ? 'bg-amber-600/35 border border-amber-500/30 text-amber-500 cursor-wait animate-pulse'
-                                  : apkPrimaryColor
-                                    ? 'text-[#07040e] font-black hover:opacity-90 shadow-md transition-all'
-                                    : 'bg-gradient-to-r from-neon-purple to-indigo-600 text-white font-black hover:opacity-90 shadow-md shadow-neon-purple/20'
+                                  : 'text-white shadow-xl hover:opacity-95'
                             }`}
-                            style={!phoneConnected && !phoneConnecting && apkPrimaryColor ? {
-                              background: `linear-gradient(135deg, ${apkPrimaryColor}, ${apkPrimaryColor}cc)`,
-                              boxShadow: `0 4px 14px ${apkPrimaryColor}40`
+                            style={!phoneConnected && !phoneConnecting ? {
+                              background: `linear-gradient(135deg, ${apkPrimaryColor || '#b026ff'}, ${apkPrimaryColor || '#9600f5'})`,
+                              boxShadow: `0 4px 18px ${apkPrimaryColor}50`
                             } : undefined}
                           >
-                            {phoneConnected ? 'PARAR' : phoneConnecting ? 'CONECTANDO...' : 'INICIAR CONEXÃO'}
+                            {!phoneConnected && !phoneConnecting && (
+                              <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                            )}
+                            
+                            {phoneConnected ? (
+                              <>
+                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                                CONECTADO (PARAR)
+                              </>
+                            ) : phoneConnecting ? (
+                              <>
+                                <RefreshCw className="w-3 px-1.5 h-3 animate-spin text-amber-500" />
+                                CONECTANDO...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                                </svg>
+                                INICIAR TÚNEL CONEXÃO
+                              </>
+                            )}
                           </button>
 
-                          {/* Status Indicators bar of emulator */}
-                          <div className="flex items-center justify-between border-t border-cyber-border/40 pt-2 px-1 text-[8px] font-mono text-slate-400 select-none">
+                          {/* Under button signature and build version indicator */}
+                          <div className="flex items-center justify-between px-1 text-[7px] font-mono text-slate-500 select-none">
                             <span className="flex items-center gap-1 uppercase">
-                              Estado: <b className={phoneConnected ? 'text-neon-green' : 'text-slate-400'}>{phoneStatusText}</b>
+                              Estado: <b className={phoneConnected ? 'text-neon-green font-black' : 'text-slate-400 font-bold'}>{phoneStatusText}</b>
                             </span>
-                            <span>EVOLUTION LITE v5.5.0</span>
+                            <span className="font-semibold">{apkPackage || 'com.xtunnel.lite'} v{apkVersionName || '5.5.0'}</span>
                           </div>
                         </div>
 
