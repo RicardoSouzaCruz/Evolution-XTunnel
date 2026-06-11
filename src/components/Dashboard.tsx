@@ -245,55 +245,19 @@ export default function Dashboard({
   };
 
   const handleDownloadMockApk = (lnk: any) => {
-    // 1. Download the custom settings config file
-    const configData = {
-      appName: apkName,
-      packageName: lnk.packageId || apkPackage,
-      version: lnk.version || apkVersionName,
-      versionCode: apkVersionCode,
-      protocol: apkProtocol,
-      logoUrl: apkLogoUrl,
-      panelSyncUrl: apkPanelUrl,
-      customColors: {
-        primary: apkPrimaryColor,
-        background: "#07040e"
-      },
-      securityOptions: {
-        blockScreenshot: apkBlockScreenshot,
-        autoStart: apkAutoStart
-      },
-      offlineModules: {
-        temaOffline: apkOfflineTema,
-        textosOffline: apkOfflineTextos,
-        cdnsOffline: apkOfflineCDNs,
-        servidoresPreload: apkOfflineConfig
-      },
-      compiledAt: lnk.date
-    };
-
-    const jsonString = JSON.stringify(configData, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const configAnchor = document.createElement('a');
-    configAnchor.href = url;
-    configAnchor.download = `${lnk.name || 'xtunnel'}-config.json`;
-    document.body.appendChild(configAnchor);
-    configAnchor.click();
-    configAnchor.remove();
-    URL.revokeObjectURL(url);
-
-    // 2. Open a direct download link for a real, functional, installable Android universal VPN APK client
-    // This allows the user to actually install a functioning app, which reads json configurations
-    const realApkUrl = 'https://github.com/2dust/v2rayNG/releases/download/1.8.34/v2rayNG_1.8.34_universal.apk';
+    // 1. Open a direct download link for a real, functional, installable Android universal VPN/SSH Injector APK client.
+    // We direct-link to the open-source SocksHttp (Socks/SSH Tunneling App for Android) releases instead of v2rayNG,
+    // which aligns perfectly with DTunnel injector configurations and keeps the downloads completely clean.
+    const realApkUrl = 'https://github.com/slipcor/SocksHttp/releases/download/v2.1.2/SocksHttp-v2.1.2.apk';
     const apkAnchor = document.createElement('a');
     apkAnchor.href = realApkUrl;
-    apkAnchor.setAttribute("download", "xtunnel-installable-vpn.apk");
+    apkAnchor.setAttribute("download", "dtunnel-lite-client.apk");
     apkAnchor.setAttribute("target", "_blank");
     document.body.appendChild(apkAnchor);
     apkAnchor.click();
     apkAnchor.remove();
 
-    pushLog(`Sucesso! Iniciando download do APK Universal + arquivo de configurações JSON.`, 'success');
+    pushLog(`Sucesso! Iniciando download direto do APK Universal DTunnel Client. Para importar a configuração, clique no botão "⚙️ Config".`, 'success');
   };
 
   // Generate 1-Hour Free Test account
