@@ -14,9 +14,19 @@ interface LoginScreenProps {
   onRegisterUser: (newUser: User) => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
+  pwaInstallable?: boolean;
+  onInstallPWA?: () => void;
 }
 
-export default function LoginScreen({ onLoginSuccess, allUsers, onRegisterUser, theme, onToggleTheme }: LoginScreenProps) {
+export default function LoginScreen({ 
+  onLoginSuccess, 
+  allUsers, 
+  onRegisterUser, 
+  theme, 
+  onToggleTheme,
+  pwaInstallable = false,
+  onInstallPWA
+}: LoginScreenProps) {
   const [isLogin, setIsLogin] = useState(true);
   
   // Login fields
@@ -470,6 +480,28 @@ export default function LoginScreen({ onLoginSuccess, allUsers, onRegisterUser, 
           </div>
         )}
       </motion.div>
+
+      {/* Floating PWA Install Notification */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-25 w-full max-w-sm px-4">
+        <div className="bg-[#100a22]/95 border border-neon-green/45 backdrop-blur-md rounded-xl p-3 shadow-xl flex items-center justify-between gap-3 text-xs neon-border-green animate-fade-in">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1 px-1.5 bg-neon-green/10 text-neon-green rounded border border-neon-green/20 font-mono font-black text-[9px] select-none animate-pulse">
+              PWA APP
+            </div>
+            <div>
+              <p className="font-bold text-white uppercase text-[10px]">Instalar APP XTunnel</p>
+              <p className="text-[9px] text-slate-400 leading-none mt-0.5">Rode na tela inicial sem precisar de VPS/Store!</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onInstallPWA}
+            className="px-3.5 py-1.5 bg-neon-green text-slate-950 font-black text-[9px] uppercase tracking-wider rounded-lg hover:bg-neon-green-hover transition-all animate-bounce cursor-pointer shadow-lg glow-green shrink-0"
+          >
+            Instalar
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

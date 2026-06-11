@@ -10,7 +10,7 @@ import {
   Server, Users, Radio, Copy, Plus, Trash2, Shield, Search, Code, Coins, 
   Clock, LogOut, Check, Flame, ShieldAlert, Globe, Activity, Wifi, Cpu, 
   FileText, RefreshCw, AlertTriangle, Key, Edit, Calendar, UserCheck,
-  Sun, Moon, Languages, Smartphone, Sparkles, Download, Heart, ArrowUp, RefreshCcw
+  Sun, Moon, Languages, Smartphone, Sparkles, Download, Heart, ArrowUp, RefreshCcw, Zap
 } from 'lucide-react';
 import { User, SshServer, SshAccount, ConnectionPayload, LogLine } from '../types';
 
@@ -28,12 +28,15 @@ interface DashboardProps {
   onSavePayload: (payload: ConnectionPayload) => void;
   onDeletePayload: (id: string) => void;
   onToggleServerStatus: (id: string) => void;
+  onToggleBBR?: (id: string) => void;
   onCreateServer: (srv: Omit<SshServer, 'id' | 'usersCount' | 'latency'>) => void;
   onDeleteServer: (id: string) => void;
   onAddCredits: (userId: string, amount: number) => void;
   pushLog: (message: string, type?: 'info' | 'success' | 'warn' | 'error') => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
+  pwaInstallable?: boolean;
+  onInstallPWA?: () => void;
 }
 
 export default function Dashboard({
@@ -50,12 +53,15 @@ export default function Dashboard({
   onSavePayload,
   onDeletePayload,
   onToggleServerStatus,
+  onToggleBBR,
   onCreateServer,
   onDeleteServer,
   onAddCredits,
   pushLog,
   theme,
-  onToggleTheme
+  onToggleTheme,
+  pwaInstallable = false,
+  onInstallPWA
 }: DashboardProps) {
   
   const [activeTab, setActiveTab] = useState<'contas' | 'servidores' | 'payloads' | 'resellers' | 'apk' | 'tutoriais'>('contas');
@@ -68,6 +74,7 @@ export default function Dashboard({
   const [apkVersionName, setApkVersionName] = useState('5.5.0');
   const [apkVersionCode, setApkVersionCode] = useState('102');
   const [apkLogoUrl, setApkLogoUrl] = useState('https://exemplo.com/icon.png');
+  const [apkProtocol, setApkProtocol] = useState<string>('SSH Direct');
   const [apkOfflineTema, setApkOfflineTema] = useState(true);
   const [apkOfflineTextos, setApkOfflineTextos] = useState(true);
   const [apkOfflineCDNs, setApkOfflineCDNs] = useState(true);
@@ -340,21 +347,33 @@ export default function Dashboard({
       return;
     }
 
+    const payloadObj = allPayloads.find(p => p.id === selectedPhonePayload);
+    const protocolName = payloadObj ? payloadObj.protocol : 'SSH Direct';
+
     setPhoneConnecting(true);
     setPhoneStatusText('CONECTANDO');
-    setPhoneLogs(['[DNS] Resolvendo servidores...', '[SSL] Efetuando handshake de segurança...']);
-    pushLog('VPN Simulador: Efetuando handshake...', 'info');
+    setPhoneLogs([
+      `[DNS] Iniciando conexão usando ${protocolName}...`,
+      `[Socket] Resolvendo DNS e roteamento para o SNI: ${payloadObj?.sni || 'localhost'}...`,
+      `[SSL] Efetuando handshake TLS com certificado corporativo...`
+    ]);
+    pushLog(`VPN Simulador: Efetuando Handshake via ${protocolName}...`, 'info');
 
     setTimeout(() => {
-      setPhoneLogs(prev => [...prev, '[HTTP] Injetando Headers / Payload...', '[Proxy] Sincronizando túnel local SSH...']);
+      setPhoneLogs(prev => [...prev, `[${protocolName}] Injetando headers/parâmetros ativos...`, `[Core] Estabelecendo túnel persistente tipo ${protocolName}...`]);
     }, 800);
 
     setTimeout(() => {
       setPhoneConnecting(false);
       setPhoneConnected(true);
       setPhoneStatusText('CONECTADO');
-      setPhoneLogs(prev => [...prev, '[SSH] Autenticação aceita com login comercial!', '✔️ EVOLUTION XTUNNEL: CONECTADO COM SINAL CHAVE!', 'Status de rede: EXCELENTE']);
-      pushLog('VPN Simulador: Túnel SSH Estabelecido para ' + phoneUsername, 'success');
+      setPhoneLogs(prev => [
+        ...prev, 
+        `[Autenticação] Credenciais validadas para o usuário: ${phoneUsername}`,
+        `✔️ EVOLUTION XTUNNEL [${protocolName}]: CONECTADO COM SINAL CHAVE!`, 
+        `Status do túnel: 100% ESTÁVEL - Latência baixa`
+      ]);
+      pushLog(`VPN Simulador: Modo ${protocolName} Estabelecido com sucesso para ` + phoneUsername, 'success');
     }, 1800);
   };
 
@@ -363,8 +382,8 @@ export default function Dashboard({
     if (apkLoading) return;
     setApkLoading(true);
     setApkBuildPercent(0);
-    setApkBuildOutput('Iniciando pipeline de compilação da base ' + apkBase + '...\n');
-    pushLog(`Compilador XTUNNEL acionado para o pacote '${apkPackage}'`, 'info');
+    setApkBuildOutput('Iniciando pipeline de compilação da base ' + apkBase + '...\n[Suporte Nativo Ativo: ' + apkProtocol + ']\n');
+    pushLog(`Compilador XTUNNEL acionado para o pacote '${apkPackage}' [Protocolo: ${apkProtocol}]`, 'info');
 
     let percent = 0;
     const interval = setInterval(() => {
@@ -376,16 +395,16 @@ export default function Dashboard({
       } else if (percent === 30) {
         setApkBuildOutput(prev => prev + '[30%] Injetando logotipo customizado do painel...\n');
       } else if (percent === 50) {
-        setApkBuildOutput(prev => prev + '[50%] Precompilando payloads e arquivos res/raw/config.json...\n');
+        setApkBuildOutput(prev => prev + '[50%] Precompilando payloads offline no modo ' + apkProtocol + '...\n');
       } else if (percent === 70) {
-        setApkBuildOutput(prev => prev + '[70%] Compilando dex e traduzindo arquivos xml offline...\n');
+        setApkBuildOutput(prev => prev + '[70%] Otimizando módulos específicos para ' + apkProtocol + ' (DEX)...\n');
       } else if (percent === 85) {
         setApkBuildOutput(prev => prev + '[85%] Alinhando zip compresso através de zipalign...\n');
       } else if (percent === 95) {
-        setApkBuildOutput(prev => prev + '[95%] Assinando pacote XTunnel v2/v3 através de certificado local...\n');
+        setApkBuildOutput(prev => prev + '[95%] Assinando pacote XTunnel com certificado v2/v3 para ' + apkProtocol + '...\n');
       } else if (percent >= 100) {
         clearInterval(interval);
-        setApkBuildOutput(prev => prev + '[100%] Compilação realizada com total sucesso! Link de download gerado.\n');
+        setApkBuildOutput(prev => prev + '[100%] Compilação realizada com total sucesso! Link de download gerado para os aparelhos do cliente.\n');
         setApkLoading(false);
         
         // Add link to list
@@ -393,12 +412,12 @@ export default function Dashboard({
           id: 'link_' + Date.now(),
           version: apkVersionName + ' (' + apkVersionCode + ')',
           date: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-          name: apkName,
+          name: apkName + ' - ' + apkProtocol,
           packageId: apkPackage,
           url: 'https://cdn.xtunnel.space/builds/apk/client-' + apkPackage + '-' + apkVersionName + '.apk'
         };
         setApkLinks(prev => [newApk, ...prev]);
-        pushLog(`Novo APK compilado: ${apkName} v${apkVersionName} pronto para download!`, 'success');
+        pushLog(`Novo APK compilado: ${apkName} (${apkProtocol}) pronto!`, 'success');
       }
     }, 300);
   };
@@ -513,14 +532,20 @@ export default function Dashboard({
                   </div>
                 </div>
 
-                <div className={`mt-3 p-2.5 rounded-xl border flex items-center justify-between text-[11px] font-mono select-none ${
-                  theme === 'light' ? 'bg-white border-slate-200/80' : 'bg-[#0f0a21] border-cyber-border'
-                }`}>
-                  <span className="text-slate-400 font-bold">SALDO CRÉDITOS:</span>
-                  <span className={`font-black ${theme === 'light' ? 'text-slate-800' : 'text-neon-yellow'}`}>
-                    {currentUser.isAdmin ? 'ILIMITADOS' : `${currentUser.credits} CRD`}
-                  </span>
-                </div>
+                 <div className={`mt-3 p-2.5 rounded-xl border flex flex-col gap-1.5 text-[11.5px] font-mono select-none ${
+                   theme === 'light' ? 'bg-white border-slate-200/80' : 'bg-[#0f0a21] border-cyber-border'
+                 }`}>
+                   <div className="flex items-center justify-between">
+                     <span className="text-slate-400 font-bold">LIMITE DE LOGINS:</span>
+                     <span className={`font-black ${theme === 'light' ? 'text-slate-800' : 'text-neon-yellow'}`}>
+                       {currentUser.isAdmin ? 'ILIMITADO' : `${currentUser.credits} LOGINS`}
+                     </span>
+                   </div>
+                   <div className="flex items-center justify-between border-t border-cyber-border/40 pt-1 text-[10px]">
+                     <span className="text-slate-500 font-medium">CONEXÃO:</span>
+                     <span className="text-neon-green font-bold">ATIVA (MENSUAL)</span>
+                   </div>
+                 </div>
               </div>
 
               {/* Drawer core navigation tab configurations */}
@@ -749,6 +774,25 @@ export default function Dashboard({
                       IDIOMA (BR)
                     </button>
 
+                  </div>
+
+                  {/* PWA Direct Installation Button */}
+                  <div className="mt-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onInstallPWA) onInstallPWA();
+                        setIsSidebarOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-center gap-2 p-3 py-3 rounded-xl border text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer ${
+                        theme === 'light'
+                          ? 'bg-emerald-600 border-slate-200 text-white hover:bg-emerald-750 shadow-sm shadow-emerald-500/20'
+                          : 'bg-neon-green border-neon-green/45 text-slate-950 hover:bg-neon-green-hover shadow-lg glow-green animate-pulse'
+                      }`}
+                    >
+                      <Smartphone className="w-4 h-4 text-neon-purple animate-bounce" fill="currentColor" />
+                      Adicionar ao Celular (App)
+                    </button>
                   </div>
                 </div>
 
@@ -986,9 +1030,9 @@ export default function Dashboard({
               <Coins className="w-5 h-5" />
             </div>
             <div>
-              <p className={`text-[9px] uppercase tracking-wider font-mono leading-none ${theme === 'light' ? 'text-slate-500 font-semibold' : 'text-slate-400'}`}>Suas Licenças</p>
-              <p className={`text-lg font-display font-black font-mono mt-0.5 ${theme === 'light' ? 'text-pink-600' : 'text-pink-500'}`}>
-                {currentUser.isAdmin ? 'ILIMITADAS' : `${currentUser.credits} CRD`}
+              <p className={`text-[9px] uppercase tracking-wider font-mono leading-none ${theme === 'light' ? 'text-slate-500 font-semibold' : 'text-slate-400'}`}>Limite de Logins Ativos</p>
+              <p className={`text-base font-display font-black font-mono mt-0.5 ${theme === 'light' ? 'text-pink-600' : 'text-pink-500'}`}>
+                {currentUser.isAdmin ? 'ILIMITADO' : `${currentUser.credits} LOGINS ATIVOS`}
               </p>
             </div>
           </div>
@@ -1161,14 +1205,14 @@ export default function Dashboard({
                     className="bg-cyber-surface border-2 border-neon-yellow/60 rounded-2xl p-4 md:p-5 relative overflow-hidden shadow-lg"
                   >
                     <div className="absolute top-0 right-0 bg-neon-yellow text-slate-950 font-mono font-black text-[9px] px-3 py-1 uppercase tracking-widest rounded-bl-xl shadow flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-slate-950 animate-pulse" /> TESTE COM EXIRAÇÃO ÀS {testOutput.expiresAt}
+                      <Clock className="w-3 h-3 text-slate-950 animate-pulse" /> TESTE COM EXPIRAÇÃO ÀS {testOutput.expiresAt}
                     </div>
 
                     <h3 className="font-display font-black text-sm text-neon-yellow tracking-wider uppercase mb-2">
                       ⚡ TESTE GERADO COM SUCESSO!
                     </h3>
                     <p className="text-xs text-slate-300 leading-relaxed mb-3 max-w-xl">
-                      Copie o template abaixo e envie ao seu cliente para colar no app VPN. Esta chave expira em 60 minutos e não desconta licença de crédito.
+                      Copie o template abaixo e envie ao seu cliente para colar no app VPN. Esta chave expira em 60 minutos para uso rápido de teste.
                     </p>
 
                     <div className="grid md:grid-cols-4 gap-3 items-stretch">
@@ -1674,13 +1718,25 @@ export default function Dashboard({
                           </div>
                         </div>
 
-                        {/* Allowed Tunnel Protocols summary */}
-                        <div className="flex flex-wrap gap-1.5 border-t border-cyber-border/70 pt-3 select-none">
-                          {srv.protocols.map((p, idx) => (
-                            <span key={idx} className="text-[9px] bg-cyber-bg border border-cyber-border px-2 py-0.5 rounded-md text-slate-350 font-mono">
-                              {p}
+                        {/* Allowed Tunnel Protocols summary with TCP BBR optimization badge */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-cyber-border/70 pt-3 select-none">
+                          <div className="flex flex-wrap gap-1.5 animate-fade-in">
+                            {srv.protocols.map((p, idx) => (
+                              <span key={idx} className="text-[9px] bg-cyber-bg border border-cyber-border px-2 py-0.5 rounded-md text-slate-350 font-mono">
+                                {p}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[9.5px] font-mono font-bold tracking-tight px-2 py-0.5 rounded-md flex items-center gap-1.5 ${
+                              srv.bbrEnabled 
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-shadow-green' 
+                                : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                            }`}>
+                              <Zap className={`w-3 h-3 ${srv.bbrEnabled ? 'text-emerald-400 animate-pulse' : 'text-slate-400'}`} />
+                              BBR: {srv.bbrEnabled ? 'OTIMIZADO' : 'INATIVO'}
                             </span>
-                          ))}
+                          </div>
                         </div>
 
                         {/* Admin Action Footers */}
@@ -1688,6 +1744,21 @@ export default function Dashboard({
                           <div className="border-t border-cyber-border pt-3.5 flex justify-between items-center bg-cyber-surface/30 px-1 mt-1 rounded-lg">
                             <span className="text-[9px] text-slate-500 font-mono">ID infra: #{srv.id}</span>
                             <div className="flex items-center gap-1.5">
+                              {/* Toggle BBR Optimization */}
+                              <button
+                                type="button"
+                                onClick={() => onToggleBBR && onToggleBBR(srv.id)}
+                                className={`text-[10px] font-bold uppercase py-1 px-2.5 border rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                                  srv.bbrEnabled
+                                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
+                                    : 'bg-slate-500/15 border-slate-500/25 text-slate-300 hover:bg-slate-500/25 animate-pulse'
+                                }`}
+                                title="Otimizar aceleração TCP BBR"
+                              >
+                                <Zap className="w-3 h-3" />
+                                {srv.bbrEnabled ? 'BBR Ativo' : 'Ativar BBR'}
+                              </button>
+
                               <button
                                 type="button"
                                 onClick={() => onToggleServerStatus(srv.id)}
@@ -1840,7 +1911,7 @@ export default function Dashboard({
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-400">Protocolo</label>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-400">Protocolo / Modo de Conexão</label>
                       <select
                         value={filterPayloadActive}
                         onChange={(e) => setFilterPayloadActive(e.target.value)}
@@ -1851,9 +1922,17 @@ export default function Dashboard({
                         }`}
                       >
                         <option value="all">Todos Métodos</option>
+                        <option value="SSH Direct">SSH Direct</option>
+                        <option value="SSH Proxy">SSH Proxy</option>
+                        <option value="SSH DNSTT">SSH DNSTT</option>
+                        <option value="SSL Direct">SSL Direct</option>
+                        <option value="SSL Proxy">SSL Proxy</option>
+                        <option value="V2Ray">V2Ray</option>
+                        <option value="XRay">XRay</option>
+                        <option value="XRay Reality">XRay + REALITY (TLS Vless)</option>
+                        <option value="Hysteria">Hysteria</option>
                         <option value="WebSocket SSL">WebSocket TLS</option>
                         <option value="SSL Tunnel">SSL Tunnel</option>
-                        <option value="SSH Direct">SSH Direct</option>
                       </select>
                     </div>
 
@@ -1955,7 +2034,7 @@ export default function Dashboard({
                       </div>
 
                       <div>
-                        <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${theme === 'light' ? 'text-slate-600' : 'text-slate-300'}`}>Protocolo VPN</label>
+                        <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${theme === 'light' ? 'text-slate-600' : 'text-slate-300'}`}>Modo de Conexão / Protocolo VPN</label>
                         <select
                           value={payProc}
                           onChange={(e) => setPayProc(e.target.value as any)}
@@ -1963,9 +2042,17 @@ export default function Dashboard({
                             theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-cyber-bg border-cyber-border text-white'
                           }`}
                         >
+                          <option value="SSH Direct">SSH Direct</option>
+                          <option value="SSH Proxy">SSH Proxy</option>
+                          <option value="SSH DNSTT">SSH DNSTT</option>
+                          <option value="SSL Direct">SSL Direct</option>
+                          <option value="SSL Proxy">SSL Proxy</option>
+                          <option value="V2Ray">V2Ray</option>
+                          <option value="XRay">XRay</option>
+                          <option value="XRay Reality">XRay + REALITY (TLS Vless)</option>
+                          <option value="Hysteria">Hysteria</option>
                           <option value="WebSocket SSL">WebSocket TLS (Bypass)</option>
                           <option value="SSL Tunnel">SSL Tunnel (Direto)</option>
-                          <option value="SSH Direct">SSH Direct (Método Antigo)</option>
                         </select>
                       </div>
 
@@ -2229,6 +2316,27 @@ export default function Dashboard({
                           <option value="XTUNNEL Lite">XTUNNEL Lite v5.5.0 (Sugerido para conexões fluidas)</option>
                           <option value="XTUNNEL Pro">XTUNNEL Pro v5.5.0 Stable (Garante suporte a V2Ray e Shadowsocks)</option>
                           <option value="XTunnel Extreme">XTunnel Legacy v3.2.0 (Embutido com proxy reverso avançado)</option>
+                        </select>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Modo de Conexão Embutido do APK</label>
+                        <select
+                          value={apkProtocol}
+                          onChange={(e) => setApkProtocol(e.target.value)}
+                          className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:border-neon-purple ${
+                            theme === 'light' ? 'bg-slate-50 border-slate-350 text-slate-800' : 'bg-[#07040e] border-cyber-border text-white'
+                          }`}
+                        >
+                          <option value="SSH Direct">SSH Direct</option>
+                          <option value="SSH Proxy">SSH Proxy</option>
+                          <option value="SSH DNSTT">SSH DNSTT</option>
+                          <option value="SSL Direct">SSL Direct</option>
+                          <option value="SSL Proxy">SSL Proxy</option>
+                          <option value="V2Ray">V2Ray</option>
+                          <option value="XRay">XRay</option>
+                          <option value="XRay Reality">XRay + REALITY (TLS Vless)</option>
+                          <option value="Hysteria">Hysteria</option>
                         </select>
                       </div>
 
@@ -2588,9 +2696,9 @@ export default function Dashboard({
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="space-y-0.5">
                     <h2 className="font-display text-lg font-black text-slate-100 flex items-center gap-2 uppercase">
-                      <Users className="w-5 h-5 text-neon-green" /> Distribuição de Créditos de Rede
+                      <Users className="w-5 h-5 text-neon-green" /> Limite de Logins de Revendedores
                     </h2>
-                    <p className="text-xs text-slate-400">Seus dados comerciais e rede de distribuidores parceiros cadastrados.</p>
+                    <p className="text-xs text-slate-400">Gerenciamento de limites de conexões simultâneas e vagas para seus revendedores parceiros.</p>
                   </div>
                   
                   <div className="text-xs font-mono text-slate-400 flex items-center gap-1.5 self-start bg-cyber-surface border border-cyber-border px-3 py-1.5 rounded-xl select-none">
@@ -2603,7 +2711,7 @@ export default function Dashboard({
                 {currentUser.isAdmin && (
                   <div className="bg-cyber-surface p-5 rounded-2xl border border-neon-purple/40">
                     <h3 className="text-xs font-black text-neon-purple uppercase tracking-widest flex items-center gap-1.5 pb-2 border-b border-cyber-border/80">
-                      <Coins className="w-4 h-4 text-neon-yellow" fill="currentColor" /> Carregador / Faturamento de Licenças
+                      <Coins className="w-4 h-4 text-neon-yellow" fill="currentColor" /> Limite de Conexões de Revendedor
                     </h3>
                     
                     <form onSubmit={handleAddCreditsSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end pt-4">
@@ -2619,14 +2727,14 @@ export default function Dashboard({
                           <option value="">Selecione distribuidor...</option>
                           {allUsers.filter(u => u.id !== currentUser.id).map(u => (
                             <option key={u.id} value={u.id}>
-                              {u.avatar} {u.name} - ({u.credits} creds atuais)
+                              {u.avatar} {u.name} - (Limite atual: {u.credits} logins)
                             </option>
                           ))}
                         </select>
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-355 uppercase tracking-wider mb-1.5 font-mono">Quantidade de Créditos</label>
+                        <label className="block text-[10px] font-bold text-slate-355 uppercase tracking-wider mb-1.5 font-mono">Novo Limite de Logins</label>
                         <input
                           type="number"
                           required
@@ -2642,7 +2750,7 @@ export default function Dashboard({
                         type="submit"
                         className="py-2.5 bg-neon-purple hover:bg-neon-purple-hover text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer shadow-md glow-purple h-[38px] flex items-center justify-center gap-1.5"
                       >
-                        <Plus className="w-4 h-4" /> Injetar Créditos
+                        <Plus className="w-4 h-4" /> Atualizar Limite
                       </button>
 
                     </form>
@@ -2657,7 +2765,7 @@ export default function Dashboard({
                     <div className="col-span-1 text-left">POS</div>
                     <div className="col-span-5 text-left">REPRESENTANTE COMERCIAL</div>
                     <div className="col-span-3">ROLE TERMINAL</div>
-                    <div className="col-span-3 text-right">LICENÇAS / CRÉDITOS</div>
+                    <div className="col-span-3 text-right">LIMITE DE ACESSOS / LOGINS</div>
                   </div>
 
                   <div className="divide-y divide-cyber-border/60">
@@ -2698,7 +2806,7 @@ export default function Dashboard({
                             {u.isAdmin ? (
                               <span className="text-neon-purple text-xs font-black tracking-widest text-shadow-purple font-mono">SUPREMO (ILIMITADO)</span>
                             ) : (
-                              <span className="font-mono text-neon-yellow text-shadow-yellow text-base">{u.credits} <span className="text-[9px] text-slate-450 font-normal">CRD</span></span>
+                              <span className="font-mono text-neon-yellow text-shadow-yellow text-base">{u.credits} <span className="text-[9px] text-slate-450 font-normal">LOGINS</span></span>
                             )}
                           </div>
 
@@ -2713,7 +2821,7 @@ export default function Dashboard({
                 <div className="bg-cyber-surface p-3.5 rounded-xl border border-cyber-border flex items-start gap-2.5 shadow-md">
                   <Coins className="w-5 h-5 text-neon-yellow shrink-0 mt-0.5" />
                   <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
-                    <strong className="text-neon-green">Licenciamento comercial:</strong> Cada criação de SSH de 30 dias deduz instantaneamente 1 crédito sob o distribuidor. Contas geradas no banner de <strong className="text-neon-yellow uppercase">Acesso Teste Rápido (1h)</strong> são cortesia do núcleo central e possuem 0 (zero) custos operacionais!
+                    <strong className="text-neon-green">Contas Mensais (30 Dias):</strong> Cada conta de cliente criada tem vigência contratual de 30 dias de acesso completo e renovável. Certifique-se apenas de que a soma total de logins simultâneos de seus clientes ativos não ultrapasse o teto contratado do seu plano revendedor!
                   </p>
                 </div>
 

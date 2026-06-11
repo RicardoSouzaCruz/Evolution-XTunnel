@@ -1,0 +1,24 @@
+{
+  "name": "Evolution XTunnel",
+  "short_name": "XTunnel",
+  "description": "Painel de controle e gerenciamento de conexões seguras, túneis SSH, V2Ray e gerador de arquivos de configuração.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07040e",
+  "theme_color": "#100a22",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/nolan/256/ssh.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/nolan/512/ssh.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "id": "com.evolution.xtunnel"
+}

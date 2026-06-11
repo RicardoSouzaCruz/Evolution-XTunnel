@@ -26,6 +26,7 @@ export interface SshServer {
   latency: number; // In milliseconds (e.g., 23ms)
   category: 'Premium' | 'VIP' | 'Bronze' | 'V2Ray';
   protocols: string[]; // ['Direct SSH', 'SSLTunnel', 'WebSocket', 'V2Ray']
+  bbrEnabled?: boolean; // TCP BBR Congestion Control status
 }
 
 export interface SshAccount {
@@ -48,7 +49,7 @@ export interface ConnectionPayload {
   carrier: 'Vivo' | 'Claro' | 'Tim' | 'Universal';
   sni: string;
   payload: string;
-  protocol: 'SSH Direct' | 'SSL Tunnel' | 'WebSocket SSL';
+  protocol: 'SSH Direct' | 'SSH Proxy' | 'SSH DNSTT' | 'SSL Direct' | 'SSL Proxy' | 'V2Ray' | 'XRay' | 'XRay Reality' | 'Hysteria' | 'WebSocket SSL' | 'SSL Tunnel';
 }
 
 export interface LogLine {

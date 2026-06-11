@@ -52,7 +52,8 @@ export const INITIAL_SERVERS: SshServer[] = [
     maxUsers: 150,
     latency: 18,
     category: 'Premium',
-    protocols: ['Direct SSH', 'WebSocket TLS', 'SSL SNI']
+    protocols: ['Direct SSH', 'WebSocket TLS', 'SSL SNI'],
+    bbrEnabled: true
   },
   {
     id: 'srv_2',
@@ -64,7 +65,8 @@ export const INITIAL_SERVERS: SshServer[] = [
     maxUsers: 100,
     latency: 22,
     category: 'VIP',
-    protocols: ['Direct SSH', 'WebSocket TLS', 'SSL SNI', 'V2Ray']
+    protocols: ['Direct SSH', 'WebSocket TLS', 'SSL SNI', 'V2Ray'],
+    bbrEnabled: true
   },
   {
     id: 'srv_3',
@@ -76,7 +78,8 @@ export const INITIAL_SERVERS: SshServer[] = [
     maxUsers: 150,
     latency: 35,
     category: 'Bronze',
-    protocols: ['WebSocket TLS']
+    protocols: ['WebSocket TLS'],
+    bbrEnabled: false
   },
   {
     id: 'srv_4',
@@ -88,7 +91,8 @@ export const INITIAL_SERVERS: SshServer[] = [
     maxUsers: 120,
     latency: 110,
     category: 'Premium',
-    protocols: ['Direct SSH', 'V2Ray']
+    protocols: ['Direct SSH', 'V2Ray'],
+    bbrEnabled: true
   },
   {
     id: 'srv_5',
@@ -100,7 +104,8 @@ export const INITIAL_SERVERS: SshServer[] = [
     maxUsers: 80,
     latency: 999,
     category: 'V2Ray',
-    protocols: ['V2Ray', 'WebSocket TLS']
+    protocols: ['V2Ray', 'WebSocket TLS'],
+    bbrEnabled: false
   }
 ];
 
@@ -204,6 +209,38 @@ export const INITIAL_PAYLOADS: ConnectionPayload[] = [
     sni: 'dash.cloudflare.com',
     protocol: 'WebSocket SSL',
     payload: 'GET /dns-query HTTP/1.1[crlf]Host: [host][crlf]Upgrade: websocket[crlf]Connection: Upgrade[crlf]Sec-WebSocket-Key: [key][crlf][crlf]'
+  },
+  {
+    id: 'pay_5',
+    name: 'V2RAY CLOUDFLARE BACKUP',
+    carrier: 'Vivo',
+    sni: 'v2ray.cadastro.vivo.com.br',
+    protocol: 'V2Ray',
+    payload: 'vmess://eyJhZGQiOiI0NS4xMjUuNjUuMTUiLCJhaWQiOiIwIiwidm1lc3NfdXVpZCI6IjVhY2Q0MDY5LTgxNzgtNGE3MS1iMmUwLTI0YTFkYjY0ZDI2NCIsImhvc3QiOiJ2Mndhbi5leGFtcGxlLmNvbSIsImlkIjoiYTJiM2M0ZDUtZTZmNy00YTg4LWI5YzgtZDEyMzQ1Njc4OWFiIiwicGF0aCI6Ii92MndhbiIsInBvcnQiOiI0NDMiLCJwcyI6IlYyUmF5LVZJVk8iLCJ0bHMiOiJ0bHMiLCJ0eXBlIjoibm9uZSIsInZlciI6IjIifQ=='
+  },
+  {
+    id: 'pay_6',
+    name: 'XRAY VLESS SPEED PRO',
+    carrier: 'Claro',
+    sni: 'xray.claro-musica.com.br',
+    protocol: 'XRay',
+    payload: 'vless://fd282cfd-3f0a-42c2-9e96-a320c2b2fa80@xray.claro-musica.com.br:443?encryption=none&security=tls&type=ws&host=claro-musica.com.br&path=%2Fxray%2Fws#XRay-Claro'
+  },
+  {
+    id: 'pay_7',
+    name: 'HYSTERIA v2 HIGH PERFORMANCE',
+    carrier: 'Tim',
+    sni: 'hy2.tim.com.br',
+    protocol: 'Hysteria',
+    payload: 'hysteria2://my_secure_password@hy2.tim.com.br:443?insecure=1&mport=80,443#Hysteria2-TIM'
+  },
+  {
+    id: 'pay_8',
+    name: 'XRAY VLESS REALITY BYPASS',
+    carrier: 'Vivo',
+    sni: 'www.vivo.com.br',
+    protocol: 'XRay Reality',
+    payload: 'vless://fd282cfd-3f0a-42c2-9e96-a320c2b2fa80@vivo.com.br:443?encryption=none&security=reality&sni=www.vivo.com.br&pbk=reality_public_key_77a9a11&sid=df13e54&type=tcp&headerType=none#XRayReality-Vivo'
   }
 ];
 

@@ -16,12 +16,43 @@ export default function App() {
     const saved = localStorage.getItem('xtunnel_theme');
     return (saved === 'light' || saved === 'dark') ? saved : 'light';
   });
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   // Apply theme to document documentElement
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('xtunnel_theme', theme);
   }, [theme]);
+
+  // Listen for visual PWA installation ability
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      pushLog("Aplicativo Instalável: O painel XTUNNEL pode ser adicionado à sua tela inicial!", "success");
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+    };
+  }, []);
+
+  const handleInstallPWA = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult: { outcome: string }) => {
+        if (choiceResult.outcome === 'accepted') {
+          pushLog("Excelente! Iniciando instalação de rede local no seu dispositivo Android/iOS.", "success");
+        } else {
+          pushLog("Instalação do instalador local cancelada voluntariamente.", "warn");
+        }
+        setDeferredPrompt(null);
+      });
+    } else {
+      // Manual backup popup matching user mobile configuration
+      alert("Para instalar o APP XTunnel no Celular:\n\n1. Pressione o botão flutuante 'Instalar Aplicativo/Adicionar à Tela Inicial' nesta página\n2. Se não estiver visível, clique no Menu (três pontinhos do navegador ou compartilhar no Safari)\n3. Selecione 'Instalar aplicativo' ou 'Adicionar à tela de início'.");
+    }
+  };
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
@@ -136,24 +167,23 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // Creation of SSH account (subtracts 1 credit from current user if they are reseller and not admin)
+  // Creation of SSH account (restricted by the reseller's monthly active logins capacity)
   const handleCreateAccount = (accountData: Omit<SshAccount, 'id' | 'ownerId' | 'ownerName' | 'bandwidthUsed' | 'status'>) => {
     if (!currentUser) return false;
 
-    const isAuthorized = currentUser.isAdmin || currentUser.credits >= 1 || accountData.isTest;
-    if (!isAuthorized) {
-      pushLog(`Falha na criação de conta SSH para ${accountData.username}: Créditos insuficientes.`, 'error');
-      return false;
-    }
+    // Accounts created by current user that are active and not a free quick test account
+    const activeLoginsCreated = accounts
+      .filter(acc => acc.ownerId === currentUser.id && acc.status === 'active' && !acc.isTest)
+      .reduce((sum, acc) => sum + (acc.limit || 1), 0);
 
-    // Deduct credits if not admin & not a free quick test account
-    let finalCredits = currentUser.credits;
+    const requestedLimit = accountData.limit || 1;
+
+    // Check capacity if not admin & not a free quick test account
     if (!currentUser.isAdmin && !accountData.isTest) {
-      finalCredits = Math.max(0, currentUser.credits - 1);
-      
-      // Update users list balance
-      setUsers(prev => prev.map(u => u.id === currentUser.id ? { ...u, credits: finalCredits } : u));
-      setCurrentUser(prev => prev ? { ...prev, credits: finalCredits } : null);
+      if (activeLoginsCreated + requestedLimit > currentUser.credits) {
+        pushLog(`Falha ao criar SSH para ${accountData.username}: Limite de logins ativos atingido (${activeLoginsCreated + requestedLimit}/${currentUser.credits} slots usados). Suspenda ou exclua contas para liberar vagas.`, 'error');
+        return false;
+      }
     }
 
     const newAccount: SshAccount = {
@@ -166,7 +196,7 @@ export default function App() {
     };
 
     setAccounts(prev => [newAccount, ...prev]);
-    pushLog(`Sucesso: SSH criado [${newAccount.username}] pelo piloto [${currentUser.name}].`, 'success');
+    pushLog(`Sucesso: SSH [${newAccount.username}] criado por ${currentUser.name}. Válido por 30 dias.`, 'success');
     return true;
   };
 
@@ -226,12 +256,24 @@ export default function App() {
     }));
   };
 
+  const handleToggleBBR = (id: string) => {
+    setServers(prev => prev.map(srv => {
+      if (srv.id === id) {
+        const nextBbr = !srv.bbrEnabled;
+        pushLog(`Otimizador TCP BBR ${nextBbr ? 'ATIVADO (Kernel Congestion Control)' : 'DESATIVADO'} para vazão máxima no servidor [${srv.name}].`, 'success');
+        return { ...srv, bbrEnabled: nextBbr };
+      }
+      return srv;
+    }));
+  };
+
   const handleCreateServer = (srv: Omit<SshServer, 'id' | 'usersCount' | 'latency'>) => {
     const newServer: SshServer = {
       ...srv,
       id: `srv_${Date.now()}`,
       usersCount: 0,
-      latency: 22
+      latency: 22,
+      bbrEnabled: true
     };
     setServers(prev => [...prev, newServer]);
     pushLog(`Novo nó de túnel registrado: [${newServer.name}] IP: ${newServer.domain}`, 'success');
@@ -242,12 +284,12 @@ export default function App() {
     pushLog(`Servidor de conexão excluído da infraestrutura de roteamento.`, 'error');
   };
 
-  // Credits management
+  // Active logins limit management
   const handleAddCreditsToReseller = (userId: string, amount: number) => {
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
         const nextCredits = u.credits + amount;
-        pushLog(`${amount} créditos de licença adicionados ao revendedor [${u.name}].`, 'success');
+        pushLog(`Limite de acessos atualizado para o revendedor [${u.name}] (+${amount} vagas de login).`, 'success');
         return { ...u, credits: nextCredits };
       }
       return u;
@@ -292,12 +334,15 @@ export default function App() {
           onSavePayload={handleSavePayload}
           onDeletePayload={handleDeletePayload}
           onToggleServerStatus={handleToggleServerStatus}
+          onToggleBBR={handleToggleBBR}
           onCreateServer={handleCreateServer}
           onDeleteServer={handleDeleteServer}
           onAddCredits={handleAddCreditsToReseller}
           pushLog={pushLog}
           theme={theme}
           onToggleTheme={toggleTheme}
+          pwaInstallable={!!deferredPrompt}
+          onInstallPWA={handleInstallPWA}
         />
       ) : (
         <LoginScreen
@@ -306,6 +351,8 @@ export default function App() {
           onRegisterUser={handleRegisterUser}
           theme={theme}
           onToggleTheme={toggleTheme}
+          pwaInstallable={!!deferredPrompt}
+          onInstallPWA={handleInstallPWA}
         />
       )}
     </div>
